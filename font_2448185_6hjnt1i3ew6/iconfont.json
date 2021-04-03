@@ -1,0 +1,86 @@
+{
+  "id": "2448185",
+  "name": "acg",
+  "font_family": "element-icons",
+  "css_prefix_text": "el-icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "3867961",
+      "name": "点赞",
+      "font_class": "zan",
+      "unicode": "e644",
+      "unicode_decimal": 58948
+    },
+    {
+      "icon_id": "5643534",
+      "name": "通知",
+      "font_class": "my-ring",
+      "unicode": "e60d",
+      "unicode_decimal": 58893
+    },
+    {
+      "icon_id": "5832645",
+      "name": "game-controller",
+      "font_class": "game",
+      "unicode": "e697",
+      "unicode_decimal": 59031
+    },
+    {
+      "icon_id": "6507424",
+      "name": "漫画",
+      "font_class": "comic",
+      "unicode": "e61f",
+      "unicode_decimal": 58911
+    },
+    {
+      "icon_id": "7407750",
+      "name": "搜索",
+      "font_class": "my-search",
+      "unicode": "e637",
+      "unicode_decimal": 58935
+    },
+    {
+      "icon_id": "8038290",
+      "name": "双色-违法举报",
+      "font_class": "report",
+      "unicode": "e624",
+      "unicode_decimal": 58916
+    },
+    {
+      "icon_id": "11819090",
+      "name": "动漫",
+      "font_class": "animation",
+      "unicode": "e6b0",
+      "unicode_decimal": 59056
+    },
+    {
+      "icon_id": "13479137",
+      "name": "管理",
+      "font_class": "my-manage",
+      "unicode": "e6fb",
+      "unicode_decimal": 59131
+    },
+    {
+      "icon_id": "13479149",
+      "name": "分析",
+      "font_class": "my-anlyse",
+      "unicode": "e6fd",
+      "unicode_decimal": 59133
+    },
+    {
+      "icon_id": "15521864",
+      "name": "Fire",
+      "font_class": "fire",
+      "unicode": "eb6d",
+      "unicode_decimal": 60269
+    },
+    {
+      "icon_id": "16243281",
+      "name": "点赞",
+      "font_class": "zan0",
+      "unicode": "e60e",
+      "unicode_decimal": 58894
+    }
+  ]
+}

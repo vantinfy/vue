@@ -1,0 +1,58 @@
+user{
+    name:string(20)
+    pwd:string(20)
+    sex:male/female/secret
+    sign:
+    level:（管理员等级0/1/2）
+    注册时间:time
+    uid:int(100000+)
+    发言状态:boolean
+    头像：
+    关注：(是一个数组，存放uid，下同)
+    粉丝：
+    收藏（的帖子）：
+}
+图片{
+    id(key)
+    name:
+    mediumblob(16M)/longblob(4G)
+}
+article{
+    tid(文章id):
+    uid:
+    title:string(40)
+    封面：img_url
+    内容：String(3000)
+    所属话题：
+    赞数：int
+    评论数：int
+    收藏数：int
+    评论区：
+}
+comment{
+    tid：
+    评论用户：
+    评论内容：
+    评论时间：
+}
+举报{
+    举报人：
+    被举报人：
+    举报时间：
+    举报理由：
+}
+msg{
+    通知类型：system/comment/subscribe-0/1/2
+    标题：
+    消息内容：
+    消息时间：
+    来自：
+    已读状态：boolean
+}
+日志{
+    操作者；
+    操作者id：
+    类型：登录、操作、注册、报错
+    时间：
+    接口调用统计：
+}
