@@ -12,7 +12,7 @@
                     </span>
                 </div>
                 <div>
-                    <el-button type="text" class="title content" @click="tDetail(article)">
+                    <el-button type="text" class="title content" @click="alter(article)">
                         {{article.title}}
                     </el-button>
                 </div>
@@ -134,19 +134,15 @@ import {mapState} from 'vuex'
                     this.mydraft = res.data.postlist
                 })
             },
-            tDetail(val){
+            alter(val){
                 // console.log("jump start>>>>", val)
                 let form = {
-                    title: '',
-                    topic: '',
+                    title: val.title,
+                    topic: val.topic,
                     content: '',
-                    cover: '',
-                    isNewArticle: ''
+                    cover: val.cover,
+                    isNewArticle: val.tid,
                 }
-                form.title = val.title
-                form.topic = val.topic
-                form.cover = val.cover
-                form.isNewArticle = val.tid
                 axios.get('http://localhost:8090/article/getcontent',{
                     params:{
                         tid: val.tid

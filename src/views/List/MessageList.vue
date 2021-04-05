@@ -66,7 +66,13 @@
                             </div>
                         </el-col>
                         <el-col :span="12"></el-col>
-                        <el-col :span="4" style="font-size:14px;color:grey">2021-3-1</el-col>
+                        <el-col :span="4" style="font-size:14px;color:grey">
+                            2021-3-1
+                            <el-button type="text" style="color:black">···</el-button>
+                            <div>
+                                <el-button size="small">去看看</el-button>
+                            </div>
+                        </el-col>
                     </el-row>
                 </el-card>
                 <el-divider>

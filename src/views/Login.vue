@@ -52,7 +52,7 @@
 import {mapState} from 'vuex'
     export default {
         computed: mapState({
-            usr: state => state.users.usr,
+            token: state => state.users.token,
         }),
         data() {
             return {
@@ -61,6 +61,12 @@ import {mapState} from 'vuex'
                 // input_pwd_again:'',
                 activeName: 'login'
             };
+        },
+        mounted() {
+            if(this.token != ''){
+                this.$message.success("你已经登录啦")
+                this.$router.go(-1)
+            }
         },
         methods: {
             correct(){

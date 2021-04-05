@@ -148,6 +148,16 @@ import axios from 'axios'
             }
         },
         mounted(){
+            axios.get('http://localhost:8090/user/getavatar',{
+                params:{
+                    uid: this.$router.currentRoute.path.split('/')[2]
+                }
+            }).then(res => {
+                if (res.data.notFound == true){
+                    this.$router.push('/notFound')
+                    return
+                }
+            })
             if(this.token.uid == this.visitUser.uid)
                 this.$store.commit('myPost', {visit: false, token: this.token})
             if (this.token != '')

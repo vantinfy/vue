@@ -322,11 +322,24 @@ import axios from 'axios'
                 formLabelWidth: '120px',
                 followCnt: 0,
                 fansCnt: 0,
+                config: {
+                    headers:{'Content-Type':'multipart/form-data'}
+                }
             }
         },
         mounted(){
+            axios.get('http://localhost:8090/user/getavatar',{
+                params:{
+                    uid: this.$router.currentRoute.path.split('/')[2]
+                }
+            }).then(res => {
+                if (res.data.notFound == true){
+                    this.$router.push('/notFound')
+                    return
+                }
+            })
             if (this.token.avatar != null)
-                this.headUrl = 'http://localhost:8090/user/getavatar?username=' + this.token.avatar
+                this.headUrl = 'http://localhost:8090/user/getavatar?uid=' + this.$router.currentRoute.path.split('/')[2]
             this.form.name = this.token.user_name
             this.form.pwd = this.token.password
             this.form.radio = this.token.sex
@@ -378,14 +391,15 @@ import axios from 'axios'
             },
             appeal(){//申诉
                 // let that = this
-                let formData = new FormData();
-                formData.append("username", this.token.user_name)
+                let formData = new FormData()
+                if (this.appealForm.reason.replace(/\s|\s/g,'') == ''){
+                    this.$message.warning("理由不能为空")
+                    return
+                }
+                formData.append("user_name", this.token.user_name)
                 formData.append("appeal_link", this.appealForm.link);
                 formData.append("appeal_reason", this.appealForm.reason);
-                let config = {
-                    headers:{'Content-Type':'multipart/form-data'}
-                };
-                axios.post("http://localhost:8090/user/appeal", formData, config)
+                axios.post("http://localhost:8090/notice/feedback", formData, this.config)
                 this.$message.success("提交成功")
                 this.appealVisible = false
             },
@@ -442,10 +456,7 @@ import axios from 'axios'
                 formData.append("username", this.token.username)
                 formData.append("file", file.file);
                 console.log(file);
-                let config = {
-                    headers:{'Content-Type':'multipart/form-data'}
-                };
-                axios.post("http://localhost:8090/user/modifyavatar", formData, config)
+                axios.post("http://localhost:8090/user/modifyavatar", formData, this.config)
                     .then(function(res) {
                         // console.log(res)
                         that.$store.commit('updateToken', res.data.user)
@@ -478,17 +489,35 @@ import axios from 'axios'
             exit(){
                 this.$store.commit('clearToken')
             },
-            revoke(){
+            feedback(){
+                if(this.token == ''){
+                    this.$message.warning("请先登录再操作")
+                    return
+                }
+                if (this.feedbackContent.replace(/\s|\s/g,'') == ''){
+                    this.$message.warning("理由不能为空")
+                    return
+                }
+                let params = new FormData()
+                params.append("feedbackContent", this.feedbackContent)
+                params.append("type", "feedback")
+                params.append("user_name", this.token.user_name)
+                axios.post('http://localhost:8090/notice/feedback', params, this.config).then(res => {
+                    if(res.data.isFeedback)
+                        this.$message.success(res.data.msg)
+                    else
+                        this.$message.warning(res.data.msg)
+                    this.feedbackView = false
+                })
+            },
+            revoke(){ // 注销账号
                 let formdata = new FormData()
                 formdata.append("username", this.token.user_name)
                 formdata.append("uid", this.token.uid)
-                let config = {
-                    headers:{'Content-Type':'multipart/form-data'}
-                };
-                axios.post("http://localhost:8090/user/revoke", formdata, config)
+                axios.post("http://localhost:8090/user/revoke", formdata, this.config)
                 this.exit()
             },
-            changeEdit(){
+            changeEdit(){ // 修改资料
                 console.log("changedit")
                 // this.$refs.upload.submit();
                 let that = this
@@ -498,20 +527,17 @@ import axios from 'axios'
                 formdata.append("sex", that.form.radio)
                 formdata.append("newpwd", that.form.pwd)
                 formdata.append("newsign", that.form.sign)
-                let config = {
-                    headers:{'Content-Type':'multipart/form-data'}
-                };
                 
                 let formdata2 = new FormData()
                 formdata2.append("file",this.file.raw)
                 formdata2.append("username",this.token.user_name)
-                axios.post("http://localhost:8090/user/modifyavatar", formdata2, config)
+                axios.post("http://localhost:8090/user/modifyavatar", formdata2, this.config)
                     .then(function(res) {
                         // console.log(res)
                         that.$store.commit('updateToken', res.data.user)
                     }
                 )
-                axios.post("http://localhost:8090/user/modifyinfo", formdata, config)
+                axios.post("http://localhost:8090/user/modifyinfo", formdata, this.config)
                     .then(function(res) {
                         // console.log(res)
                         if(res.data.isUpdate){

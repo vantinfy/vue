@@ -60,12 +60,13 @@
                         <div class="content" style="font-size: 14px; margin: 0 20px 6px 10px;" v-html="article.content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')">
                         </div>
                         <!-- <div style="text-align:center;margin-top:10px;"> -->
-                            <el-image
-                                fit="contain"
-                                style="height:100px;width:100%"
-                                :src="url + article.cover" 
-                                :preview-src-list="[url + article.cover]">
-                            </el-image>
+                            <el-button @click="tDetail(article.tid)" type="text">
+                                <el-image
+                                    fit="contain"
+                                    style="height:100px;width:100%"
+                                    :src="url + article.cover">
+                                </el-image>
+                            </el-button>
                         <!-- </div> -->
 
                         <!-- <el-divider></el-divider> -->
@@ -132,6 +133,10 @@ import {mapState} from 'vuex'
                     topic: this.$router.currentRoute.path.split("/")[2]
                 }
             }).then(res => {
+                if(res.data.articlelist == null){
+                    this.$router.push('/notFound')
+                    return
+                }
                 this.articlelist = res.data.articlelist
                 this.articlelist.reverse() // 逆序，因为需要最新发布的排在最前，下同
                 // 试过在后端接口就逆序好再响应，但是拿到的数据总是只有一部分逆序，所以干脆全都在这里逆序好了

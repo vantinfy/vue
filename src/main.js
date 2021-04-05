@@ -33,13 +33,13 @@ Vue.use(VEmojiPicker);
 
 Vue.config.productionTip = false
 
-router.beforeEach((to, from, next) => {
-    // console.log(to.matched[0], to.matched[0].components.default.methods)
-    setTimeout(() => {
-            // console.log("wake")
-            next()
-        }, Math.random() * 900 + 100) // 随机延迟时间：0.1-1秒
-})
+// router.beforeEach((to, from, next) => {
+//     // console.log(to.matched[0], to.matched[0].components.default.methods)
+//     setTimeout(() => {
+//             // console.log("wake")
+//             next()
+//         }, Math.random() * 900 + 100) // 随机延迟时间：0.1-1秒
+// })
 
 new Vue({
     router,

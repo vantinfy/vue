@@ -189,7 +189,7 @@
                     </el-tab-pane>
                     
                     <el-tab-pane name="topicManage">
-                        <span slot="label"><i class="el-icon-connection"></i> 话题管理</span>
+                        <span slot="label"><i class="el-icon-connection"></i> 评论管理</span>
                         话题管理内容--
                         新增管理员
                     </el-tab-pane>
@@ -273,6 +273,7 @@ import {mapState} from 'vuex'
                 }, 300)
                 return
             }
+            this.handleSelect(this.menuActive)
             // console.log(new Date("2077-2-2 12:12:00".replace(/-/g, '/')).getTime())
             axios.get('http://localhost:8090/admin/getAllUser',{
             }).then(res => {
@@ -302,7 +303,8 @@ import {mapState} from 'vuex'
             }).then(res => {
                 this.articles = res.data.allarticles
                 if (this.articles != '')
-                    this.articles.forEach((_, index) => {
+                    this.articles.forEach((val, index) => {
+                        val.content = val.content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')// 富文本标签去除
                         if (this.articles[index].book != '')
                             this.articles[index].bookCnt = this.articles[index].book.split('-').length
                         else

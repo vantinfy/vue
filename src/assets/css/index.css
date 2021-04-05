@@ -6,3 +6,31 @@
     text-overflow: ellipsis;
     /*ellipsis:文本溢出显示省略号（...）；clip：不显示省略标记（...），而是简单的裁切*/
 }
+
+.commentFutext blockquote {
+    /*富文本引用块的样式*/
+    display: block;
+    border-left: 8px solid #d0e5f2;
+    padding: 3px 10px;
+    margin: 10px 0;
+    line-height: 1.2;
+    font-size: 100%;
+    background-color: #f2f6f9;
+}
+
+
+/* .commentFutext ul,
+ol {
+    margin: 10px 0 10px 20px;
+} */
+
+
+/* .commentFutext code {
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+    background-color: #f1f1f1;
+    border-radius: 3px;
+    padding: 3px 5px;
+    margin: 0 3px;
+} */

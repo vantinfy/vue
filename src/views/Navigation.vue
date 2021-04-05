@@ -238,7 +238,16 @@ import axios from 'axios'
             },
             create(){
                 if (this.isLogin){
-                    this.newArticle = true
+                    // this.newArticle = true
+                    let form = {
+                        title: '',
+                        topic: '',
+                        cover: '',
+                        content: '',
+                        isNewArticle: 1,
+                    }
+                    this.$store.commit('setDraftForm', form)
+                    this.$router.push('/newArticle')
                 }else{
                     this.$message.warning(`请先登录再操作`);
                 }
