@@ -57,6 +57,7 @@ export default {
             state.follow = false;
             state.fans = false;
             state.msg = false;
+            state.book = false;
             if (state.draft != true)
                 state.draft = !state.draft;
             if (router.currentRoute.params.list != "draft" || router.currentRoute.path.split("/")[1] == "visit") {

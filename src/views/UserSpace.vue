@@ -17,7 +17,7 @@
                                         {{token.user_name}}
                                         <span style="margin-left:20px;font-weight:thin;font-size:14px">uid:{{token.uid}}</span>
                                     </div>
-                                    <span style="margin-bottom:10px;color:#be002f;font-weight:thin;font-size:14px" v-show="new Date(token.state.replace(/-/g, '/')).getTime() > new Date().getTime()">
+                                    <span style="margin-bottom:10px;color:#be002f;font-weight:thin;font-size:14px" v-show="silence">
                                         <!-- 字体颜色：殷红#be002f -->
                                         <i class="el-icon-loading"></i> 账号封禁中，恢复时间：{{token.state}}
                                     </span>
@@ -95,7 +95,7 @@
                                             <div>粉丝</div>
                                         </el-col>
                                         <el-col :span="8">
-                                            <el-button type="text" style="padding-bottom:0;font-size:18px" disabled>{{token.zan}}</el-button>
+                                            <el-button type="text" style="padding-bottom:0;font-size:18px;color:#333">{{token.zan}}</el-button>
                                             <!-- <span style="padding-bottom:0;font-size:18px">99</span> -->
                                             <div>赞</div>
                                         </el-col>
@@ -124,17 +124,22 @@
                                 </el-button>
                             </el-card>
                             <el-card shadow="nerver" :body-style="{ padding: '0px' }" class="card">
+                                <el-button type="text" style="width:100%" icon="el-icon-chat-line-round">
+                                    我的评论
+                                </el-button>
+                            </el-card>
+                            <el-card shadow="nerver" :body-style="{ padding: '0px' }" class="card" v-if="silence">
                                 <el-button type="text" style="width:100%" icon="el-icon-warning-outline" @click="appealVisible = true">
                                     禁言申诉
                                 </el-button>
                             </el-card>
                             <el-dialog title="提交申诉" :visible.sync="appealVisible">
                                 <el-form :model="appealForm">
-                                    <el-form-item label="具体帖子链接" >
+                                    <!-- <el-form-item label="具体帖子链接（选填）" >
                                         <el-input v-model="appealForm.link" placeholder="请输入链接" maxlength="64" show-word-limit clearable></el-input>
-                                    </el-form-item>
+                                    </el-form-item> -->
                                     <el-form-item label="申诉理由" >
-                                        <el-input v-model="appealForm.reason" type="textarea" :autosize="{ minRows: 6, maxRows: 6}" placeholder="请输入申诉理由" maxlength="200" show-word-limit clearable></el-input>
+                                        <el-input v-model="appealForm.reason" type="textarea" :autosize="{ minRows: 6, maxRows: 6}" placeholder="请输入申诉理由" maxlength="300" show-word-limit clearable></el-input>
                                     </el-form-item>
                                 </el-form>
                                 <div slot="footer" class="dialog-footer">
@@ -312,6 +317,7 @@ import axios from 'axios'
                     // resource: '',
                     // desc: ''
                 },
+                silence: false, // 封禁状态
                 appealForm:{
                     reason: '',
                     link: '',
@@ -328,6 +334,13 @@ import axios from 'axios'
             }
         },
         mounted(){
+            if (this.token != ""){
+                if (new Date(this.token.state.replace(/-/g, '/')).getTime() > new Date().getTime())
+                    this.silence = true
+            }else{
+                this.$router.push('/login')
+                return
+            }
             axios.get('http://localhost:8090/user/getavatar',{
                 params:{
                     uid: this.$router.currentRoute.path.split('/')[2]
@@ -391,13 +404,19 @@ import axios from 'axios'
             },
             appeal(){//申诉
                 // let that = this
+                if(!this.silence){
+                    this.$message.info('你没有被禁言哦')
+                    return
+                }
                 let formData = new FormData()
                 if (this.appealForm.reason.replace(/\s|\s/g,'') == ''){
                     this.$message.warning("理由不能为空")
                     return
                 }
                 formData.append("user_name", this.token.user_name)
-                formData.append("appeal_link", this.appealForm.link);
+                formData.append("uid", this.token.uid)
+                // formData.append("appeal_link", this.appealForm.link);
+                formData.append("type", "appeal")
                 formData.append("appeal_reason", this.appealForm.reason);
                 axios.post("http://localhost:8090/notice/feedback", formData, this.config)
                 this.$message.success("提交成功")

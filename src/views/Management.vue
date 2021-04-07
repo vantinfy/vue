@@ -168,7 +168,7 @@
                                     size="mini"
                                     type="primary"
                                     plain
-                                    @click="tDetail(scope.row.tid)">详情 >></el-button>
+                                    @click="tDetail(scope.row.Tid)">详情 >></el-button>
                                 </template>
                             </el-table-column>
                         </el-table>
@@ -302,32 +302,35 @@ import {mapState} from 'vuex'
             axios.get('http://localhost:8090/admin/getAllArticle',{
             }).then(res => {
                 this.articles = res.data.allarticles
-                if (this.articles != '')
-                    this.articles.forEach((val, index) => {
-                        val.content = val.content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')// 富文本标签去除
-                        if (this.articles[index].book != '')
-                            this.articles[index].bookCnt = this.articles[index].book.split('-').length
-                        else
-                            this.articles[index].bookCnt = 0
-                        if (this.articles[index].zan != '')
-                            this.articles[index].zanCnt = this.articles[index].zan.split('-').length
-                        else
-                            this.articles[index].zanCnt = 0
-                        if (this.articles[index].comment != '')
-                            this.articles[index].commentCnt = this.articles[index].comment.split('-').length
-                        else
-                            this.articles[index].commentCnt = 0
-                        this.articles[index].user_name = res.data.ownerlist[index].UserName
-                        this.users.forEach((_, i) => {
-                            if (this.users[i].uid == this.articles[index].uid)
-                                this.users[i].post ++
-                        })
-                    })
+                this.articles.forEach(val => {
+                    val.Content = val.Content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')// 富文本标签去除
+                })
+                // if (this.articles != '')
+                //     this.articles.forEach((val, index) => {
+                //         val.content = val.content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')// 富文本标签去除
+                //         if (this.articles[index].book != '')
+                //             this.articles[index].bookCnt = this.articles[index].book.split('-').length
+                //         else
+                //             this.articles[index].bookCnt = 0
+                //         if (this.articles[index].zan != '')
+                //             this.articles[index].zanCnt = this.articles[index].zan.split('-').length
+                //         else
+                //             this.articles[index].zanCnt = 0
+                //         if (this.articles[index].comment != '')
+                //             this.articles[index].commentCnt = this.articles[index].comment.split('-').length
+                //         else
+                //             this.articles[index].commentCnt = 0
+                //         this.articles[index].user_name = res.data.ownerlist[index].UserName
+                //         this.users.forEach((_, i) => {
+                //             if (this.users[i].uid == this.articles[index].uid)
+                //                 this.users[i].post ++
+                //         })
+                //     })
                 this.articles.forEach((key, index) => {
-                    this.articleOptions.xAxis.data.push('Tid:' + key.tid)
-                    this.articleOptions.series[0].data.push(key.zanCnt)
-                    this.articleOptions.series[1].data.push(key.commentCnt)
-                    this.articleOptions.series[2].data.push(key.bookCnt)
+                    this.articleOptions.xAxis.data.push('Tid:' + key.Tid)
+                    this.articleOptions.series[0].data.push(key.ZanCount)
+                    this.articleOptions.series[1].data.push(key.CommentCount)
+                    this.articleOptions.series[2].data.push(key.BookCount)
                 })
                 this.users.forEach((key, index) => {
                     this.userOptions.series[0].data.push({
@@ -380,13 +383,13 @@ import {mapState} from 'vuex'
                 pane:[true, false, false, false],
                 // pane: [false, true, true, true],
                 articleLabels: {
-                    title: '帖子标题',
-                    user_name: '发布者',
-                    uid: '发布者id',
-                    content: '内容',
-                    tid: '帖子id',
-                    create_time: '创建时间',
-                    topic: '所属话题',
+                    Title: '帖子标题',
+                    UserName: '发布者',
+                    Uid: '发布者id',
+                    Content: '内容',
+                    Tid: '帖子id',
+                    CreateTime: '创建时间',
+                    Topic: '所属话题',
                 },
                 userLabels: {
                     name: '用户名',
@@ -597,7 +600,9 @@ import {mapState} from 'vuex'
                 }else{
                     let params = new FormData()
                     params.append("time", this.forbid.time)
-                    params.append("uid", this.forbid.user.uid)
+                    params.append("uid", this.forbid.user.uid) // 要禁言用户的uid
+                    params.append("operator", this.token.user_name)
+                    params.append("operatorId", this.token.uid) // 操作者uid
                     let config = {
                         headers:{'Content-Type':'multipart/form-data'}
                     }
@@ -634,7 +639,10 @@ import {mapState} from 'vuex'
                     return
                 }
                 let params = new FormData()
-                params.append('uids', this.userSelect)
+                params.append('uids', this.userSelect) // 要解除禁言的用户的id
+                params.append("user_name", this.forbid.user.user_name)
+                params.append("operator", this.token.user_name)
+                params.append("operatorId", this.token.uid)
                 let config = {
                     headers:{'Content-Type':'multipart/form-data'}
                 }
@@ -657,6 +665,8 @@ import {mapState} from 'vuex'
                 let params = new FormData()
                 params.append('tids', this.articleSelect.tids)
                 params.append('covers', this.articleSelect.covers)
+                params.append("operator", this.token.user_name)
+                params.append("operatorId", this.token.uid)
                 let config = {
                     headers:{'Content-Type':'multipart/form-data'}
                 };
@@ -714,7 +724,7 @@ import {mapState} from 'vuex'
                     this.$store.dispatch('visit', val)
             },
             tDetail(val){
-                this.$router.push('/article/' + val)
+                this.$router.push('/details/' + val)
             }
         }
     }

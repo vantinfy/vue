@@ -9,41 +9,47 @@
                 <div>
                     <i class="el-icon-time"></i>
                     <span style="margin-left:10px;font-size:14px;color:grey">
-                        {{article.create_time}}
+                        {{article.Article.create_time}}
                     </span>
                 </div>
                 <div>
-                    <el-button type="text" class="title content" @click="tDetail(article.tid)">
-                        {{article.title}}
+                    <el-button type="text" class="title content" @click="tDetail(article.Article.tid)">
+                        {{article.Article.title}}
                     </el-button>
                 </div>
-                <div class="content" style="margin-bottom:4px" v-html="article.content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')">
+                <div class="content" style="margin-bottom:4px" v-html="article.Article.content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')">
                 </div>
                 <el-image 
                     style="width: 30%;"
-                    :src="url + article.cover" 
-                    :preview-src-list="[url + article.cover]">
+                    :src="url + article.Article.cover" 
+                    :preview-src-list="[url + article.Article.cover]">
                 </el-image>
                 <el-divider></el-divider>
                 <el-row type="flex" align="middle" justify="space-around">
                     <el-col :span="14">
-                        <el-button size="mini" round @click="goTopic(article.topic)">
-                            {{article.topic}}
+                        <el-button size="mini" round @click="goTopic(article.Article.topic)">
+                            {{article.Article.topic}}
                         </el-button>
                     </el-col>
                     <el-col :span="3">
-                        <el-button type="text" style="width:100%" icon="el-icon-zan0">
-                            {{zanCntList[index]}}
+                        <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-zan" @click="cancelZan(article,index)" v-if="article.IsZan">
+                            {{article.ZanList.length}}
+                        </el-button>
+                        <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-zan0" @click="zan(article,index)" v-if="!article.IsZan">
+                            {{article.ZanList.length}}
                         </el-button>
                     </el-col>
                     <el-col :span="3">
-                        <el-button type="text" style="width:100%" icon="el-icon-star-off">
-                            {{bookCntList[index]}}
+                        <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-on" @click="cancelBook(article,index)" v-if="article.IsBook">
+                            {{article.BookList.length}}
+                        </el-button>
+                        <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-off" @click="book(article,index)" v-if="!article.IsBook">
+                            {{article.BookList.length}}
                         </el-button>
                     </el-col>
                     <el-col :span="3">
-                        <el-button type="text" style="width:100%" icon="el-icon-chat-dot-round" @click="tDetail(article.tid)">
-                            {{commentCntList[index]}}
+                        <el-button type="text" style="width:100%;font-size:18px" icon="el-icon-chat-dot-round" @click="tDetail(article.Article.tid)">
+                            {{article.CommentList.length}}
                         </el-button>
                     </el-col>
                 </el-row>
@@ -86,29 +92,20 @@ import {mapState} from 'vuex'
             }
             axios.get("http://localhost:8090/user/getmypost",{
                 params:{
-                    uid: this.current.uid
+                    uid: this.current.uid,
+                    visit_uid:this.current.uid,
                 }
             }).then(res =>{
                 this.mypost = res.data.postlist
-                if(this.mypost != null)
-                    for (let i = 0; i < this.mypost.length; i++){
-                        if(this.mypost[i].comment != ""){
-                            this.commentCntList[i] = this.mypost[i].comment.split("-").length
-                        }else{
-                            this.commentCntList[i] = 0
-                        }
-                        if(this.mypost[i].zan != ""){
-                            this.zanCntList[i] = this.mypost[i].zan.split("-").length
-                        }else{
-                            this.zanCntList[i] = 0
-                        }
-                        
-                        if(this.mypost[i].book != ""){
-                            this.bookCntList[i] = this.mypost[i].book.split("-").length
-                        }else{
-                            this.bookCntList[i] = 0
-                        }
-                    }
+                if (this.mypost != null)
+                    this.mypost.forEach(val => {
+                        if (val.ZanList == null)
+                            val.ZanList = []
+                        if (val.BookList == null)
+                            val.BookList = []
+                        if (val.CommentList == null)
+                            val.CommentList = []
+                    })
             })
         },
         data() {
@@ -118,9 +115,6 @@ import {mapState} from 'vuex'
                 // srcList: ['https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg'],
                 visitmode: false,
                 current: '',
-                commentCntList: [],
-                zanCntList: [],
-                bookCntList: [],
             }
         },
         methods: {
@@ -136,12 +130,40 @@ import {mapState} from 'vuex'
             },
             tDetail(val){
                 // console.log("jump start>>>>", val)
-                this.$router.push('/article/' + val)
+                this.$router.push('/details/' + val)
                 // console.log("jump done>>>>", val)
             },
             goTopic(val){
                 this.$router.push('/topic/' + val)
             },
+            zan(article,index){
+                if(this.token == ''){
+                    this.$message.warning("需要登录才能操作哦")
+                    return
+                }
+                this.$store.commit('zan',{article:article,token:this.token})
+                this.mypost[index].ZanList.push("...")
+                this.mypost[index].IsZan = true
+            },
+            cancelZan(article,index){
+                this.$store.commit('cancelZan',{article:article,token:this.token})
+                this.mypost[index].ZanList.pop()
+                this.mypost[index].IsZan = false
+            },
+            book(article,index){
+                if(this.token == ''){
+                    this.$message.warning("需要登录才能操作哦")
+                    return
+                }
+                this.$store.commit('book',{article:article,token:this.token})
+                this.mypost[index].BookList.push("...")
+                this.mypost[index].IsBook = true
+            },
+            cancelBook(article,index){
+                this.$store.commit('cancelBook',{article:article,token:this.token})
+                this.mypost[index].BookList.pop()
+                this.mypost[index].IsBook = false
+            }
         },
     }
 </script>

@@ -14,6 +14,44 @@ export default {
     getters: {},
     mutations: {
         // 同步方法
+        zan(state, payload) {
+            axios.get('http://localhost:8090/article/zan', {
+                params: {
+                    uid: payload.token.uid,
+                    tid: payload.article.Article.tid,
+                    owner_uid: payload.article.Uid,
+                    user_name: payload.token.user_name
+                }
+            })
+        },
+        cancelZan(state, payload) {
+            axios.get('http://localhost:8090/article/cancelzan', {
+                params: {
+                    uid: payload.token.uid,
+                    tid: payload.article.Article.tid,
+                    owner_uid: payload.article.Uid,
+                }
+            })
+        },
+        book(article, payload) {
+            axios.get('http://localhost:8090/article/book', {
+                params: {
+                    uid: payload.token.uid,
+                    tid: payload.article.Article.tid,
+                    owner_uid: payload.article.Uid,
+                    user_name: payload.token.user_name
+                }
+            })
+        },
+        cancelBook(article, payload) {
+            axios.get('http://localhost:8090/article/cancelbook', {
+                params: {
+                    uid: payload.token.uid,
+                    tid: payload.article.Article.tid,
+                    owner_uid: payload.article.Uid,
+                }
+            })
+        },
         setTotalTop(state, payload) {
             state.totalTop = payload
         },

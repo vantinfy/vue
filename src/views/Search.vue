@@ -24,59 +24,65 @@
                                     </el-card>
                                 </el-tab-pane> -->
                                 <el-tab-pane label="帖子" name="seek_article">
-                                    <el-card v-for="(article, index) in articlelist" :key="index" shadow="nerver" style="margin-top:20px">
+                                    <el-card v-for="(article, index) in articleInfo" :key="index" shadow="nerver" style="margin-top:20px">
                                         <el-row type="flex" align="middle">
                                             <el-col :span="2">
-                                                <el-avatar :size="34" style="" :src="headUrl+articleInfo[index].Avatar"></el-avatar>
+                                                <el-avatar :size="34" style="" :src="headUrl+article.Avatar"></el-avatar>
                                             </el-col>
                                             <el-col :span="4">
-                                                <el-button type="text" class="name" @click="visit(articleInfo[index].UserName)">
-                                                    {{articleInfo[index].UserName}}
+                                                <el-button type="text" class="name" @click="visit(article.UserName)">
+                                                    {{article.UserName}}
                                                 </el-button>
                                             </el-col>
                                             <el-col :span="12"></el-col>
                                             <el-col :span="6">
                                                 <span style="font-size:12px;color:grey;">
-                                                    {{article.create_time}}
+                                                    {{article.Article.create_time}}
                                                 </span>
                                             </el-col>
                                         </el-row>
                                         <!-- <div> -->
-                                            <el-button type="text" class="title content" @click="tDetail(article.tid)">
-                                                {{article.title}}
+                                            <el-button type="text" class="title content" @click="tDetail(article.Article.tid)">
+                                                {{article.Article.title}}
                                             </el-button>
                                         <!-- </div> -->
                                         <div class="content" style="margin:0 20px 6px 20px">
-                                            {{article.content}}
+                                            {{article.Article.content.replace(/&lt;(\S*?)[^>]*>.*?|&lt;.*? \/>/g,'').replace(/&&&img&&&/g,'')}}
+                                            <!-- '<'要改成'&lt;'，不然eslint会报错，不过vue是可以正常运行的 -->
                                         </div>
-                                        <div>
+                                        <el-button type="text" @click="tDetail(article.Article.tid)">
                                             <el-image
                                                 fit="contain"
                                                 style="height:100px;width:100%"
-                                                :src="url + article.cover" 
-                                                :preview-src-list="[url + article.cover]">
+                                                :src="url + article.Article.cover">
                                             </el-image>
-                                        </div>
+                                        </el-button>
                                         <el-divider></el-divider>
                                         <el-row type="flex" align="middle" justify="space-around">
                                             <el-col :span="14">
-                                                <el-button size="mini" round @click="goTopic(article.topic)">
-                                                    {{article.topic}}
+                                                <el-button size="mini" round @click="goTopic(article.Article.topic)">
+                                                    {{article.Article.topic}}
                                                 </el-button>
                                             </el-col>
                                             <el-col :span="3">
-                                                <el-button type="text" style="width:100%" icon="el-icon-zan0">
-                                                    {{zanCntList[index]}}
+                                                <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-zan" @click="cancelZan(article,index)" v-if="article.IsZan">
+                                                    {{article.ZanList.length}}
+                                                </el-button>
+                                                <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-zan0" @click="zan(article,index)" v-if="!article.IsZan">
+                                                    {{article.ZanList.length}}
                                                 </el-button>
                                             </el-col>
                                             <el-col :span="3">
-                                                <el-button type="text" style="width:100%" icon="el-icon-star-off">
-                                                    {{bookCntList[index]}}
+                                                <el-button type="text" style="width:100%;font-size:20px;" icon="el-icon-star-on" @click="cancelBook(article,index)" v-if="article.IsBook">
+                                                    {{article.BookList.length}}
+                                                </el-button>
+                                                <el-button type="text" style="width:100%;font-size:20px;" icon="el-icon-star-off" @click="book(article,index)" v-if="!article.IsBook">
+                                                    {{article.BookList.length}}
                                                 </el-button>
                                             </el-col>
                                             <el-col :span="3">
-                                                <el-button type="text" style="width:100%" icon="el-icon-chat-dot-round" @click="tDetail(article.tid)">
-                                                    {{commentCntList[index]}}
+                                                <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-chat-dot-round" @click="tDetail(article.Article.tid)">
+                                                    {{article.CommentList.length}}
                                                 </el-button>
                                             </el-col>
                                         </el-row>
@@ -154,11 +160,7 @@ import {mapState} from 'vuex'
                 headUrl: 'http://localhost:8090/user/getavatar?username=',
                 url: 'http://localhost:8090/article/getcover?cover=',
                 activeName: 'seek_article',
-                articlelist: [],
                 articleInfo: [],
-                commentCntList: [],
-                zanCntList: [],
-                bookCntList: [],
                 userlist: [],
                 mode: "article", //搜索模式：帖子/用户
             }
@@ -172,31 +174,22 @@ import {mapState} from 'vuex'
                 axios.get("http://localhost:8090/search", {
                     params: {
                         keyword: this.keyword,
-                        mode: this.mode
+                        mode: this.mode,
+                        visit_uid: this.token.uid
                     }
                 }).then(res => {
                     // console.log(res.data)
-                    this.articlelist = res.data.articlelist
-                    if (this.articlelist != null)
-                        for (let i = 0; i < this.articlelist.length; i++){
-                            if(this.articlelist[i].comment != ""){
-                                this.commentCntList[i] = this.articlelist[i].comment.split("-").length
-                            }else{
-                                this.commentCntList[i] = 0
-                            }
-                            if(this.articlelist[i].zan != ""){
-                                this.zanCntList[i] = this.articlelist[i].zan.split("-").length
-                            }else{
-                                this.zanCntList[i] = 0
-                            }
-                            if(this.articlelist[i].book != ""){
-                                this.bookCntList[i] = this.articlelist[i].book.split("-").length
-                            }else{
-                                this.bookCntList[i] = 0
-                            }
-                        }
                     this.articleInfo = res.data.articleInfo
                     this.userlist = res.data.userlist
+                    if(this.articleInfo != null)
+                        this.articleInfo.forEach(val => {
+                            if (val.CommentList == null)
+                                val.CommentList = []
+                            if (val.ZanList == null)
+                                val.ZanList = []
+                            if (val.BookList == null)
+                                val.BookList = []
+                        })
                 })
             },
             handleClick(tab) {
@@ -215,12 +208,39 @@ import {mapState} from 'vuex'
                     this.$store.dispatch('visit', val)
             },
             tDetail(val){
-                this.$router.push('/article/' + val)
+                this.$router.push('/details/' + val)
             },
             goTopic(val) {
                 this.$router.push('/topic/' + val)
             },
-            zan(val){},
+           zan(article,index){
+                if(this.token == ''){
+                    this.$message.warning("需要登录才能操作哦")
+                    return
+                }
+                this.$store.commit('zan',{article:article,token:this.token})
+                this.articleInfo[index].ZanList.push("...")
+                this.articleInfo[index].IsZan = true
+            },
+            cancelZan(article,index){
+                this.$store.commit('cancelZan',{article:article,token:this.token})
+                this.articleInfo[index].ZanList.pop()
+                this.articleInfo[index].IsZan = false
+            },
+            book(article,index){
+                if(this.token == ''){
+                    this.$message.warning("需要登录才能操作哦")
+                    return
+                }
+                this.$store.commit('book',{article:article,token:this.token})
+                this.articleInfo[index].BookList.push("...")
+                this.articleInfo[index].IsBook = true
+            },
+            cancelBook(article,index){
+                this.$store.commit('cancelBook',{article:article,token:this.token})
+                this.articleInfo[index].BookList.pop()
+                this.articleInfo[index].IsBook = false
+            },
             subscribe(e){
                 console.log(e)
                 // let target = e.target;

@@ -29,6 +29,7 @@
                                     src='../assets/wechat.png'
                                     fit="cover"></el-image> -->
                                     <img src="../assets/wechat.png" style="width:144px;height:144px" fit="contain">
+                                    <div style="text-align:center">站长微信</div>
                                 <el-button type="text" slot="reference" class="btn">WeChat</el-button>
                             </el-popover>
                         </el-col>
@@ -36,10 +37,10 @@
                 </el-col>
                 <el-col :span="4"></el-col>
             </el-row>
-            <el-dialog :visible.sync="feedbackView">
+            <el-dialog  title="提交反馈" :visible.sync="feedbackView">
                 <el-input
                     type="textarea"
-                    placeholder="反馈内容"
+                    placeholder="反馈只有站长会收到哦"
                     v-model="feedbackContent"
                     maxlength="300"
                     show-word-limit
@@ -107,6 +108,7 @@ import {mapState} from 'vuex'
                 params.append("feedbackContent", this.feedbackContent)
                 params.append("type", "feedback")
                 params.append("user_name", this.token.user_name)
+                params.append("uid", this.token.uid)
                 axios.post('http://localhost:8090/notice/feedback', params, this.config).then(res => {
                     if(res.data.isFeedback)
                         this.$message.success(res.data.msg)

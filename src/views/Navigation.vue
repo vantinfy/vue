@@ -8,17 +8,26 @@
 
                     <el-dropdown>
                         <span class="el-dropdown-link">
-                            <el-button type="text" class="btn" style="margin:0 10px">消息</el-button>
+                            <el-button type="text" class="btn" style="margin:0 10px">
+                                消息 <el-badge is-dot v-show="isLogin && (systemNoticeCnt != 0 || commentNoticeCnt != 0 || subscribeNoticeCnt != 0 || zanBookNoticeCnt != 0)"></el-badge>
+                            </el-button>
                         </span>
-                        <el-dropdown-menu slot="dropdown">                            
+                        <el-dropdown-menu slot="dropdown" style="text-align:center">                            
                             <el-dropdown-item>
                                 <el-button type="text" @click="msg_sys()">系统通知</el-button>
+                                <el-badge :value="systemNoticeCnt" :max="99" v-if="systemNoticeCnt"></el-badge>
                             </el-dropdown-item>
                             <el-dropdown-item>
                                 <el-button type="text" @click="msg_cment()">评论</el-button>
+                                <el-badge :value="commentNoticeCnt" :max="99" v-if="commentNoticeCnt"></el-badge>
                             </el-dropdown-item>
                             <el-dropdown-item>
-                                <el-button type="text" @click="msg_follow()">关注</el-button>
+                                <el-button type="text" @click="msg_zbook()">点赞收藏</el-button>
+                                <el-badge :value="zanBookNoticeCnt" :max="99" v-if="zanBookNoticeCnt"></el-badge>
+                            </el-dropdown-item>
+                            <el-dropdown-item>
+                                <el-button type="text" @click="msg_follow()">新关注</el-button>
+                                <el-badge :value="subscribeNoticeCnt" :max="99" v-if="subscribeNoticeCnt"></el-badge>
                             </el-dropdown-item>
                         </el-dropdown-menu>
                     </el-dropdown>
@@ -80,70 +89,6 @@
                 </el-col>
             </el-row>
         </el-drawer>
-        <el-dialog title="发布帖子" :visible.sync="newArticle">
-            <quill-editor v-model="publish" options="">
-            </quill-editor>
-            <!-- rules用于表单信息的校验(form-item的prop为需要检验的字段名) -->
-            <!-- <el-form :model="formRef" :rules="rules" ref="formRef" id="formData">
-                <el-form-item label="封面" :label-width="formLabelWidth" style="margin-bottom:16px" prop="fileList">
-                    <el-upload
-                        accept="image/jpeg,image/png,image/gif"
-                        :auto-upload="false"
-                        action="/empty"
-                        list-type="picture-card"
-                        :limit="1"
-                        :file-list="fileList"
-                        name="上传图片文件"
-                        :on-change="uploadChange"
-                        :on-exceed="handleExceed"
-                        :on-remove="handleRemove"
-                        :before-upload="beforeCoverUpload"
-                        :on-success="handleSuccess">
-                        <div style="font-size:13px">
-                            图片大小不超过15M
-                        </div>
-                    </el-upload> -->
-                    <!-- <el-dialog :visible.sync="dialogVisible">
-                        <img width="100%" :src="dialogImageUrl" alt="">
-                    </el-dialog> -->
-                    
-                    <!-- <div id="myPhoto" v-show="personalPhoto">
-                        <div class="viewPhoto">
-                            <img src="" alt="" id="portrait" style="width: 80px;height: 80px" />
-                        </div>
-                        <div class="listBox">
-                            <dl>
-                                <dt>请上传图片</dt>
-                                <dd>
-                                    <input type="file" id="saveImage" name="myphoto" @change="great()">
-                                </dd>
-                            </dl>
-                        </div>
-                        <div class="save">
-                            <input type="button" value="保存图片" @click="imageSubmit">
-                        </div>
-                    </div> -->
-
-                <!-- </el-form-item>
-                <el-form-item label="标题" :label-width="formLabelWidth" style="margin-bottom:16px" prop="title">
-                    <el-input v-model="formRef.title" placeholder="标题" maxlength="30" show-word-limit></el-input>
-                </el-form-item>
-                <el-form-item label="内容" :label-width="formLabelWidth" style="margin-bottom:6px" prop="text">
-                    <el-input v-model="formRef.text" type="textarea" :autosize="{ minRows: 6, maxRows: 6}" placeholder="内容" maxlength="3000" show-word-limit></el-input>
-                </el-form-item>
-                <el-form-item label="话题" :label-width="formLabelWidth" style="margin-bottom:6px" prop="radio">
-                    <el-radio-group v-model="formRef.radio">
-                    <el-radio label="Animation">Animation</el-radio>
-                    <el-radio label="Comic">Comic</el-radio>
-                    <el-radio label="Game">Game</el-radio>
-                </el-radio-group>
-                </el-form-item>
-            </el-form> -->
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="newArticle = false">取 消</el-button>
-                <el-button type="primary" @click="submit('formRef')">发 布</el-button>
-            </div>
-        </el-dialog>
     </div>
 </template>
 
@@ -155,6 +100,14 @@ import axios from 'axios'
             usr: state => state.users.usr,
             token: state => state.users.token,
             activeName: state => state.spacelist.activeName,
+            systemNoticeCnt: state => state.notice.systemNoticeCnt,
+            commentNoticeCnt: state => state.notice.commentNoticeCnt,
+            zanBookNotice:state=>state.notice.zanBookNotice,
+            subscribeNoticeCnt: state => state.notice.subscribeNoticeCnt,
+            systemNotice: state => state.notice.systemNotice,
+            commentNotice: state => state.notice.commentNotice,
+            zanBookNoticeCnt:state=>state.notice.zanBookNoticeCnt,
+            subscribeNotice: state => state.subscribeNotice,
         }),
         mounted(){
             // axios.get('http://localhost:8090/user/getlogin',{
@@ -172,59 +125,61 @@ import axios from 'axios'
             // console.log((new Date().getTime() + 120 * 60 * 1000))
             // if(parseInt(this.token.split("-")[2])+ 120 * 60 * 1000<(new Date().getTime() + 60 * 60 * 1000)||this.token=='')
             if(this.token == '')
-                this.isLogin = false//登录信息失效
+                this.isLogin = false // 登录信息失效
             else{
                 this.isLogin = true
-                if (this.token.avatar != null)
-                    this.headUrl = 'http://localhost:8090/user/getavatar?username=' + this.token.avatar
+                if (this.token.avatar != null){
+                    this.headUrl = 'http://localhost:8090/user/getavatar?uid=' + this.token.uid
+                    axios.get('http://localhost:8090/notice/getallnotice',{
+                        params:{
+                            uid: this.token.uid,
+                            level: this.token.level,
+                        }
+                    }).then(res => {
+                        this.$store.commit('setZero',"all")
+                        if (res.data.system_notice != null){
+                            this.$store.commit('setSystemNotice', res.data.system_notice.reverse())
+                            this.systemNotice.forEach(val => {
+                                if(val.is_read == 0)
+                                    this.$store.commit('add', "sys")
+                            })
+                        }
+                        if (res.data.subscribe_notice != null){
+                            this.$store.commit('setSubscribeNotice', res.data.subscribe_notice.reverse())
+                            this.subscribeNotice.forEach(val => {
+                                if(val.is_read == 0)
+                                    this.$store.commit('add', "subs")
+                            })
+                        }
+                        if (res.data.comment_notice != null){
+                            this.$store.commit('setCommentNotice', res.data.comment_notice.reverse())
+                            this.commentNotice.forEach(val => {
+                                if(val.is_read == 0)
+                                    this.$store.commit('add', "com")
+                            })
+                        }
+                        if (res.data.zan_book_notice != null){
+                            this.$store.commit('setZanBookNotice', res.data.zan_book_notice.reverse())
+                            this.zanBookNotice.forEach(val => {
+                                if(val.is_read == 0)
+                                    this.$store.commit('add', "zbk")
+                            })
+                        }
+                    })
+                }
             }
             // this.great()
         },
         data(){
-            let patter = /^(\n|\s)+$/; // 正则表达式
-            let NotEmpty = (rule, value, callback) => {
-                if (patter.test(value)) {
-                    return callback(new Error('内容不能为全空'))
-                } else {
-                    callback()
-                }
-            };
             return{
                 drawer: false,
                 direction: 'ttb',
                 input_search:'',
                 isLogin: false,
                 headUrl: null,
-                newArticle: false,
-                fileList: [],
-                publish: '',
-                formRef:{
-                    title: '',
-                    text: '',
-                    radio: '',
-                },
-                formLabelWidth: '60px',
-                // personalPhoto: true,
-                dialogImageUrl: '',
-                dialogVisible: false,
-                rules:{
-                    fileList:[
-                        {required: true, message: '请上传帖子封面', trigger: 'change'}
-                    ],
-                    title:[
-                        {required: true, message: '请输入帖子标题', trigger: 'blur'},
-                        { validator: NotEmpty}
-                    ],
-                    text:[
-                        {required: true, message: '请输入帖子内容', trigger: 'blur'},
-                        { validator: NotEmpty}
-                    ],
-                    radio:[
-                        {required: true, message: '请选择帖子所属话题', trigger: 'change'}
-                    ],
-                },
-                codeFile: '',
-                codeFileList: '',
+                sysNotice: 0,
+                comNotice: 0,
+                subsNotice: 0,
             }
         },
         methods:{
@@ -238,7 +193,6 @@ import axios from 'axios'
             },
             create(){
                 if (this.isLogin){
-                    // this.newArticle = true
                     let form = {
                         title: '',
                         topic: '',
@@ -247,7 +201,7 @@ import axios from 'axios'
                         isNewArticle: 1,
                     }
                     this.$store.commit('setDraftForm', form)
-                    this.$router.push('/newArticle')
+                    this.$router.push('/article/new')
                 }else{
                     this.$message.warning(`请先登录再操作`);
                 }
@@ -265,6 +219,13 @@ import axios from 'axios'
                     return
                 }
                 this.$store.commit('myMessage',{token:this.token, type:'comment_notice'})
+            },
+            msg_zbook(){
+                if(!this.isLogin){
+                    this.$message.warning(`请先登录再操作`);
+                    return
+                }
+                this.$store.commit('myMessage',{token:this.token, type:'zan_book_notice'})
             },
             msg_follow(){
                 if(!this.isLogin){
@@ -291,12 +252,8 @@ import axios from 'axios'
                     this.$message.warning(`请先登录再操作`);
                     return
                 }
-                // this.$store.dispatch('getMySpace', this.token)
                 this.$store.commit('myPost', {visit: false, token: this.token})
             },
-            // handleSelect(key, keyPath) {
-            //     console.log(key, keyPath);
-            // },
             exit(){
                 this.isLogin = false
                 this.$store.commit('clearToken')
@@ -339,99 +296,6 @@ import axios from 'axios'
             //             console.log(error);
             //         })
             // },
-            uploadChange(file, fileList){
-                this.codeFile = file;
-                this.codeFileList = fileList;
-                if(fileList.length == 1){
-                    let {fileList, ...data} = this.rules;
-                    this.rules = data;
-                    this.$refs.formRef.clearValidate('fileList');
-                }
-                // this.$refs.formRef.validateField('fileList')
-            },
-            handleRemove(file, fileList) {
-                if(fileList.length == 0){
-                    this.codeFile = null
-                    this.rules.fileList = [{ required: true, message: '请上传帖子封面', trigger: 'change'}];
-                }
-                // this.formRef.fileList.splice()
-                // 文件删除后也要触发验证,validateField是触发部分验证的方法,参数是prop设置的值
-                this.$refs.formRef.validateField('fileList')
-                console.log(file, fileList);
-            },
-            // handlePictureCardPreview(file) {
-            //     this.dialogImageUrl = file.url;
-            //     this.dialogVisible = true;
-            // },
-            handleExceed(files, fileList) {
-                this.$message.warning(`最多选择 1 个文件`);
-            },
-            beforeCoverUpload(){
-                const isJPG = file.type === 'image/jpeg';
-                const isPNG = file.type === 'image/png';
-                const isGIF = file.type === 'image/gif';
-                const isLt15M = file.size / 1024 / 1024 < 15;
-
-                if (!isJPG && !isPNG && !isGIF) {
-                    this.$message.error('上传封面图片只能是 JPG/PNG/GIF 格式!');
-                }
-                if (!isLt15M) {
-                    this.$message.error('上传封面图片大小不能超过 15MB!');
-                }
-                return isJPG && isPNG && isGIF && isLt15M;
-                // return false
-            },
-            submit(val){
-                if (new Date(this.token.state.replace(/-/g, '/')).getTime() > new Date().getTime()){
-                    alert("您因为违规行为已被临时封禁，具体恢复时间请到个人空间查看\n如对封禁有异议亦可在个人空间申诉")
-                    this.newArticle = false
-                    return
-                }
-                // console.log("submit---val:::::",val) //val = formRef
-                this.$refs[val].validate((valid) => {
-                    if(valid){
-                        // let formdata = document.getElementById('formData')
-                        let params = new FormData() ; //创建一个form对象——注意console.log(formdata)是空的，只能通过它自带的方法get、getAll、key查看
-                        params.append('file', this.codeFile.raw)
-                        params.append("title", this.formRef.title)
-                        params.append("context", this.formRef.text)
-                        params.append("publisher", this.token.user_name)
-                        params.append("publisherId", this.token.uid)
-                        params.append("topic", this.formRef.radio)
-                        let config = {
-                            headers:{'Content-Type':'multipart/form-data'}
-                        };
-                        // axios默认的post使用application/json格式编码（需要上传文件/图片时得用multipart/form-data编码)
-                        axios.post("http://localhost:8090/article/newArticle", params, config)
-                            .then(res => {
-                                if(res.data.successPublish){
-                                    this.$message.success(res.data.msg)
-                                    this.newArticle = false
-                                    // console.log("response:====>", res);
-                                }else{
-                                    this.$message.error(res.data.msg)
-                                }
-                                // console.log("response.data:======>",res.data)
-                                // this.imageSave = res.data.image;
-                                // sessionStorage.setItem('headImg', this.imageSave); //将图片保存，并能够在其他地方加载显示
-                                // that.$router.go(0); //刷新页面
-                            })
-                            .catch(function (error) {
-                                console.log("can't find:---->", error);
-                            })
-                            // alert('submit!');
-                    }else {
-                        console.log('表单数据不完整');
-                        return false;
-                    }
-                })
-            },
-            handleSuccess (res, file, fileList) {
-                // 这里可以写文件上传成功后的处理,但是一定要记得给fileList赋值
-                // this.fileList = 'fileList'
-                // 文件上传后不会触发form表单的验证,要手动添加验证
-                this.$refs.formRef.validateField('fileList')
-            },
         }
     }
 </script>

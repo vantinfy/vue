@@ -85,7 +85,7 @@ import axios from 'axios'
                 this.reload()
             },
             tDetail(val){
-                this.$router.push('/article/' + val)
+                this.$router.push('/details/' + val)
             },
         },
     }

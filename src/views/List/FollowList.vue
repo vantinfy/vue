@@ -74,6 +74,8 @@ import {mapState} from 'vuex'
                 }
             }).then(res =>{
                 this.followlist = res.data.followlist
+                if (this.followlist != null)
+                    this.followlist.reverse()
             })
         },
         methods:{

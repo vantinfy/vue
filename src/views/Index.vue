@@ -5,15 +5,26 @@
 
             <el-main>
                 <div style="text-align:center">
-                    <h5><i class="el-icon-fire"></i><i class="el-icon-fire"></i>最近热门</h5>
+                    <h5>
+                        <i class="el-icon-fire"></i><i class="el-icon-fire"></i>{{toplist}}
+                        <el-tooltip content="切换榜单" placement="right">
+                            <el-switch
+                                v-model="hot7or31"
+                                active-color="#7B68EE"
+                                inactive-color="#87CEEB"
+                                @change="switchList"
+                            ></el-switch>
+                        </el-tooltip>
+                    </h5>
+                    
                 </div>
                 <el-carousel height="400px" type="card" :interval="2000" style="margin:10px 4px;background-image:url('assets/wechat.png')">
                     <el-carousel-item v-for="(article, index) in newest" :key="index" style="text-align:center">
-                        <el-button type="text" style="padding:0;height:100%" @click="tDetail(article.tid)">
+                        <el-button type="text" style="padding:0;height:100%" @click="tDetail(article.Article.tid)">
                             <el-image
                                 fit="contain"
                                 style="width: 100%; height: 100%;"
-                                :src="url + article.cover">
+                                :src="url + article.Article.cover">
                             </el-image>
                         </el-button>
                     </el-carousel-item>
@@ -32,7 +43,7 @@
                         <el-card shadow="never">
                             <div slot="header" class="clearfix">
                                 <i class="el-icon-fire"></i>
-                                <span style="margin-left:2px; font-weight:bolder">排行</span>
+                                <span style="margin-left:2px; font-weight:bolder">总榜</span>
                                 <!-- <el-button style="float: right; padding: 3px 0" type="text">更多</el-button> -->
                             </div>
                             <el-row :gutter="40">
@@ -48,32 +59,32 @@
                                         <el-image
                                             fit="contain"
                                             style="width: 100%; height: 160px;"
-                                            :src="url + article.cover"
-                                            :preview-src-list="[url + article.cover]">
+                                            :src="url + article.Article.cover"
+                                            :preview-src-list="[url + article.Article.cover]">
                                         </el-image>
                                         <div style="padding: 6px;">
                                             <div style="text-align:center">
-                                                <el-button type="text" class="button content" @click="tDetail(article.tid)">
-                                                    {{article.title}}
+                                                <el-button type="text" class="button content" @click="tDetail(article.Article.tid)">
+                                                    {{article.Article.title}}
                                                 </el-button>
                                             </div>
                                             <el-row style="margin-bottom:10px" type="flex" align="middle">
                                                 <el-col :span="11">
                                                     <div style="text-align:center;">
                                                         <!-- padding:6px 0 -->
-                                                        综合得分: {{article.Cnt}}
+                                                        综合得分: {{article.Score}}
                                                     </div>
                                                 </el-col>
                                                 <el-col :span="3"></el-col>
                                                 <el-col :span="2">
                                                     <div style="text-align:center">
-                                                        <el-avatar :size="30" style="margin:4px 4px 0 0" :src="headUrl + top3Name[index].Avatar"></el-avatar>
+                                                        <el-avatar :size="30" style="margin:4px 4px 0 0" :src="headUrl + article.Avatar"></el-avatar>
                                                     </div>
                                                 </el-col>
                                                 <el-col :span="8">
                                                     <div style="text-align:center">
-                                                        <el-button type="text" class="name" @click="visit(top3Name[index].UserName)">
-                                                            {{top3Name[index].UserName}}
+                                                        <el-button type="text" class="name" @click="visit(article.UserName)">
+                                                            {{article.UserName}}
                                                         </el-button>
                                                     </div>
                                                 </el-col>
@@ -95,11 +106,13 @@
                             <el-row :gutter="20" style="margin-bottom:20px">
                                 <el-col v-for="(article,index) in animationList" :key="index" :span="6">
                                     <el-card :body-style="{ padding: '0px' }" shadow="hover">
-                                        <el-image
-                                            fit="contain"
-                                            class="image"
-                                            :src="url + article.Article.cover">
-                                        </el-image>
+                                        <el-button type="text" @click="tDetail(article.Article.tid)">
+                                            <el-image
+                                                fit="contain"
+                                                class="image"
+                                                :src="url + article.Article.cover">
+                                            </el-image>
+                                        </el-button>
                                         <div style="padding: 4px;">
                                             <div style="text-align:center">
                                                 <el-button type="text" class="button content" @click="tDetail(article.Article.tid)">
@@ -137,11 +150,13 @@
                             <el-row :gutter="20" style="margin-bottom:20px">
                                 <el-col v-for="(article, index) in comicList" :key="index" :span="6">
                                     <el-card :body-style="{ padding: '0px' }" shadow="hover">
-                                        <el-image
-                                            fit="contain"
-                                            class="image"
-                                            :src="url + article.Article.cover">
-                                        </el-image>
+                                        <el-button type="text" @click="tDetail(article.Article.tid)">
+                                            <el-image
+                                                fit="contain"
+                                                class="image"
+                                                :src="url + article.Article.cover">
+                                            </el-image>
+                                        </el-button>
                                         <div style="padding: 6px;">
                                             <div style="text-align:center">
                                                 <el-button type="text" class="button" @click="tDetail(article.Article.tid)">
@@ -179,11 +194,13 @@
                             <el-row :gutter="20" style="margin-bottom:20px">
                                 <el-col v-for="(article, index) in gameList" :key="index" :span="6">
                                     <el-card :body-style="{ padding: '0px' }" shadow="hover">
-                                        <el-image
-                                            fit="contain"
-                                            class="image"
-                                            :src="url + article.Article.cover">
-                                        </el-image>
+                                        <el-button type="text" @click="tDetail(article.Article.tid)">
+                                            <el-image
+                                                fit="contain"
+                                                class="image"
+                                                :src="url + article.Article.cover">
+                                            </el-image>
+                                        </el-button>
                                         <div style="padding: 6px;">
                                             <div style="text-align:center">
                                                 <el-button type="text" class="button" @click="tDetail(article.Article.tid)">
@@ -265,129 +282,54 @@ import {mapState} from 'vuex'
         computed: {
             ...mapState({
                 token: state => state.users.token,
-                totalTop: state => state.articles.totalTop,
-                totalTopName: state => state.articles.totalTopName,
+                // totalTop: state => state.articles.totalTop,
+                // totalTopName: state => state.articles.totalTopName,
             })
         },
-        // watch:{
-        //     totalTop:{
-        //         handler(newV, oldV){
-        //             console.log("totalTop changed",oldV,"-->",newV)
-        //             this.$store.commit('setTotalTop', newV)
-        //         }
-        //     }
-        // },
         mounted(){
-            this.$axios.get('http://localhost:8090/admin/getAllArticle').then(res => {
-                this.$store.commit('setTotalTop', res.data.allarticles)
-                this.$store.commit('setTotalTopName', res.data.ownerlist)
-                var zanCnt = new Array() // 与下面的声明是一样的，但是不能一次声明多个
-                var commentCnt = []
-                var bookCnt = []
-                for (let i = 0; i < this.totalTop.length; i++) {
-                    if (this.totalTop[i].zan != '')
-                        zanCnt.push(this.totalTop[i].zan.split("-").length) // 与arr[i] = xx作用一样
-                    else
-                        zanCnt.push(0)
-                    if (this.totalTop[i].book != '')
-                        bookCnt[i] = this.totalTop[i].book.split("-").length
-                    else
-                        bookCnt[i] = 0
-                    if (this.totalTop[i].comment != '')
-                        commentCnt[i] = this.totalTop[i].comment.split("-").length
-                    else
-                        commentCnt[i] = 0
-
-                    // 新增属性Cnt，计算帖子综合得分，点赞评论和收藏的权重分别为1、1.5、1.2，还要考虑发布日的时间差防止一直霸榜
-                    this.totalTop[i].Cnt = (zanCnt[i] + commentCnt[i] * 1.5 + bookCnt[i] * 1.2) * 10 + 100
-
-                    // 最新、最热、增长速度、最近一周最热
-                    // 计算帖子发布至今的时间差，用于计算综合评分
-                    let diff = new Date() - new Date(this.totalTop[i].create_time) // 结果是时间戳
-                    // 新增帖子创建距今天数用于获取最新帖子
-                    this.totalTop[i].day = diff / 1000 / 24 / 3600
-                    diff = Math.pow(Math.log((diff + 1) / (1000 * 3600 * 24)), 2)
-                    if (diff > this.totalTop[i].Cnt)
-                        this.totalTop[i].Cnt += diff
-                    else
-                        this.totalTop[i].Cnt -= diff
-
-                    this.totalTop[i].Cnt = Math.ceil(this.totalTop[i].Cnt) // 向上取整
-                    this.totalTopName[i].Cnt = this.totalTop[i].Cnt
+            this.$axios.get('http://localhost:8090/article/getTopArticle').then(res => {
+                this.totalTop = res.data.totalTop
+                this.new7 = res.data.new7
+                this.new31 = res.data.new31
+                for(let i=0; i<3; i++){  // 总榜
+                    this.top3.push(this.totalTop[i])
                 }
-                this.totalTop.sort(function(a, b) { // 打算封装在mutation中的，结果调用没用——mutation不能返回值
-                    let value1 = a['Cnt']; // 对象数组按照上面新增的Cnt的属性大小排序
-                    let value2 = b['Cnt'];
-                    // 降序排列
-                    return value2 - value1;
-                })
-                this.totalTopName.sort(function(a, b) { // 总榜对应的发布者也要排序
-                    let value1 = a['Cnt'];
-                    let value2 = b['Cnt'];
-                    // 降序排列
-                    return value2 - value1;
-                })
-
-                // 获取最新一周和一个月内的热门
-                if(this.totalTop.length >= 3)
-                    for(let i = 0; i < 3; i++){ // 只能通过循环取了，直接用slice会改变state的值，改值未来可能还需要再别的地方（如排行榜页面）用到
-                        this.top3.push(this.totalTop[i]) // 对上一条加注：此axios.get原来是写在articles.js（即vuex）中，但是response响应延迟会导致本页面第一次加载的时候周榜月榜没有来得及更新res的数据，所以只能改到mounted中的res写了
-                        this.top3Name.push(this.totalTopName[i])
-                    }
-                else{
-                    this.top3 = this.totalTop
-                    this.top3Name = this.totalTopName
-                }
-                this.totalTop.sort(this.compare('day', true)) // 按帖子发布至今天数升序排序
-                let new7 = [] // 最近一周的帖子
-                let new31 = [] // 最近一个月的帖子
-                this.totalTop.forEach((val, index) => {
-                    if (val.day <= 31){
-                        val.introduce = '最近一个月内热门'
-                        new31.push(val)
-                        if (val.day <= 7){ // 把小于7的判断放到31内，优化if处理，因为大于31的一定也大于7因此就没有必要再判断了
-                            val.introduce = '最近一周热门'
-                            new7.push(val)
-                        }
-                    }
-                })
-                new7.sort(this.compare('Cnt', false)).splice(2, new7.length - 2)
-                new7.forEach((val, index) => {
-                    val.introduce += '第' + (index + 1)
-                    if(index <= 1 )
-                        this.newest.push(val)
-                })
-                new31.sort(this.compare('Cnt', false)).splice(2, new31.length - 2)
-                new31.forEach((val, index) => {
-                    val.introduce += '第' + (index + 1)
-                    if(index <= 1 )
-                        this.newest.push(val)
-                })
-                this.newest = this.unique(this.newest) // 去除数组重复元素
+                this.new7 = this.new7.slice(0,5) // 周榜(切取0-5——不包括5——位置的元素，不足5个全取)
+                this.new31 = this.new31.slice(0,5) // 月榜
+                this.newest = this.new7 // 设置轮播图展示的具体是周榜还是月榜
             })
-            this.$axios.get('http://localhost:8090/article/getAllArticle').then(res => { // 获取话题
-                this.animationList = res.data.animationList
+            this.$axios.get('http://localhost:8090/article/getAllArticle').then(res => { // 获取每个话题下的帖子
+                this.animationList = res.data.animationList // 后台已经完成排序和剪切，只发送最新的4篇，下同
                 this.comicList = res.data.comicList
                 this.gameList = res.data.gameList
-                // 排序并剪切，只留下最新的4篇用于首页显示，从下标为4（即实际第5篇）开始，删除len-4个元素
-                this.animationList.sort(this.compare('PublishTime', false)).splice(4,this.animationList.length - 4)
-                this.comicList.sort(this.compare('PublishTime', false)).splice(4,this.comicList.length - 4)
-                this.gameList.sort(this.compare('PublishTime', false)).splice(4,this.gameList.length - 4)
             })
         },
         data(){
             return {
                 headUrl: 'http://localhost:8090/user/getavatar?username=',
                 url: 'http://localhost:8090/article/getcover?cover=',
+                totalTop:[],
+                new7:[],
+                new31:[],
                 top3: [],
-                top3Name: [],
-                newest: [], // 存放最新帖子、最近7天及31天内的最热帖子，如果有重复则会过滤
+                newest: [], // 存放最近7天或31天内的最热帖子
+                hot7or31: true,
+                toplist:"周榜",
                 animationList: [],
                 comicList: [],
                 gameList: [],
             }
         },
         methods:{
+            switchList(){ // 切换榜单
+                if(this.hot7or31){
+                    this.newest = this.new7
+                    this.toplist = "周榜"
+                }else{
+                    this.newest = this.new31
+                    this.toplist = "月榜"
+                }
+            },
             jumpTo(val){
                 this.$router.push('./topic/'+val)
             },
@@ -398,7 +340,7 @@ import {mapState} from 'vuex'
                     this.$store.dispatch('visit', val)
             },
             tDetail(val){
-                this.$router.push('/article/' + val)
+                this.$router.push('/details/' + val)
             },
             compare(key, desc) { // 封装一个数组排序方法
                 // key:  用于排序的数组的key值

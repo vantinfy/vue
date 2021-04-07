@@ -41,7 +41,7 @@
                                             <div>粉丝</div>
                                         </el-col>
                                         <el-col :span="8">
-                                            <el-button type="text" style="padding-bottom:0;font-size:18px" disabled>{{visitUser.zan}}</el-button>
+                                            <el-button type="text" style="padding-bottom:0;font-size:18px;color:#333">{{visitUser.zan}}</el-button>
                                             <div>赞</div>
                                         </el-col>
                                     </el-row>

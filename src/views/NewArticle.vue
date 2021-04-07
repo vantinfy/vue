@@ -8,11 +8,11 @@
         <el-col :span="4"></el-col>
         <el-col :span="16">
           <el-card shadow="never" style="margin:40px 0;padding:0">
-            <div style="font-weight:bolder">发布帖子</div>
+            <div style="font-weight:bolder;margin-bottom:10px">发布帖子</div>
             <el-divider></el-divider>
             <el-form
               label-width="10%"
-              style="padding: 0 24px 20px 24px"
+              style="padding: 0 24px 20px 24px;margin-top:20px"
               :rules="rules"
               ref="draftForm"
               :model="draftForm"
@@ -156,8 +156,10 @@ export default {
     if (this.token == ''){
       this.$message.warning("要先登录才能发布评论哦")
       this.$router.go(-1)
+      return
     }
     this.originForm = Object.assign(this.originForm, this.draftForm); // 直接用=赋值this.originForm，是应用类型，需要用复制（深拷贝）的方法
+    this.newArticle = this.draftForm.content
     if (this.draftForm.cover != "") {
       this.url = this.url + this.draftForm.cover;
       this.imgNull = false;
@@ -199,7 +201,7 @@ export default {
       coverChange: false, // 记录用户修改帖子的时候有没有更换封面
       isClear: false, // 清除富文本编辑器内容
       preview: false, // 开启预览功能
-      newArticle: "这是预览",
+      newArticle: "这是预览，如果没有呈现的话那就在输入框输入后再删除试试吧",
       originForm: {
         // 将页面创建时的draftForm存放在这里，用于离开页面（路由跳转）时提示用户保存
         title: "",

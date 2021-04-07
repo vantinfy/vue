@@ -8,41 +8,47 @@
                 <div>
                     <i class="el-icon-time"></i>
                     <span style="margin-left:10px;font-size:14px;color:grey">
-                        {{article.create_time}}
+                        {{article.Article.create_time}}
                     </span>
                 </div>
                 <div>
-                    <el-button type="text" class="title content" @click="alter(article)">
-                        {{article.title}}
+                    <el-button type="text" class="title content" @click="alter(article.Article)">
+                        {{article.Article.title}}
                     </el-button>
                 </div>
-                <div class="content" style="margin-bottom:4px" v-html="article.content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')">
+                <div class="content" style="margin-bottom:4px" v-html="article.Article.content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')">
                 </div>
                 <el-image 
                     style="width: 30%;"
-                    :src="url + article.cover" 
-                    :preview-src-list="[url + article.cover]">
+                    :src="url + article.Article.cover" 
+                    :preview-src-list="[url + article.Article.cover]">
                 </el-image>
                 <el-divider></el-divider>
                 <el-row type="flex" align="middle" justify="space-around">
                     <el-col :span="14">
-                        <el-button size="mini" round @click="goTopic(article.topic)">
-                            {{article.topic}}
+                        <el-button size="mini" round @click="goTopic(article.Article.topic)">
+                            {{article.Article.topic}}
                         </el-button>
                     </el-col>
                     <el-col :span="3">
-                        <el-button type="text" style="width:100%" icon="el-icon-zan0">
-                            {{zanCntList[index]}}
+                        <el-button type="text" style="width:100%;font-size:18px" icon="el-icon-zan" @click="cancelZan(article,index)" v-if="article.IsZan">
+                            {{article.ZanList.length}}
+                        </el-button>
+                        <el-button type="text" style="width:100%;font-size:18px" icon="el-icon-zan0" @click="zan(article,index)" v-if="!article.IsZan">
+                            {{article.ZanList.length}}
                         </el-button>
                     </el-col>
                     <el-col :span="3">
-                        <el-button type="text" style="width:100%" icon="el-icon-star-off">
-                            {{bookCntList[index]}}
+                        <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-on" @click="cancelBook(article,index)" v-if="article.IsBook">
+                            {{article.BookList.length}}
+                        </el-button>
+                        <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-off" @click="book(article,index)" v-if="!article.IsBook">
+                            {{article.BookList.length}}
                         </el-button>
                     </el-col>
                     <el-col :span="3">
-                        <el-button type="text" style="width:100%" icon="el-icon-chat-dot-round" @click="tDetail(article.tid)">
-                            {{commentCntList[index]}}
+                        <el-button type="text" style="width:100%;font-size:18px" icon="el-icon-chat-dot-round" @click="tDetail(article.Article.tid)">
+                            {{article.CommentList.length}}
                         </el-button>
                     </el-col>
                 </el-row>
@@ -61,79 +67,41 @@ import {mapState} from 'vuex'
         computed: {
             ...mapState({
                 token: state => state.users.token,
-                visitUser: state => state.users.visitUser,
                 draftForm: state => state.articles.draftForm,
             })
         },
-        watch: {
-            visitUser:{
-                handler(newValue, oldValue) {
-                    // console.log("watch: ", "newValue>>", newValue.avatar, "oldValue>>",  oldValue.avatar)
-                    this.updateCurrent(newValue)
-                },
-                // immediate: true,  //刷新加载 立马触发一次handler
-                deep: true  // 可以深度检测到 obj 对象的属性值的变化
-            }
-        },
         mounted () {
             if(this.$router.currentRoute.path.split("/")[1] == "visit"){
-                this.visitmode = true
-                this.current = this.visitUser
-            }
-            else{
-                this.visitmode = false
-                this.current = this.token
+                this.$message.warning("没有权限查看哦")
+                this.$router.go(-1)
+                return
             }
             axios.get("http://localhost:8090/user/getdraft",{
                 params:{
-                    uid: this.current.uid
+                    uid: this.token.uid,
+                    visit_uid:this.token.uid,
                 }
             }).then(res =>{
                 this.mydraft = res.data.draftlist
                 if(this.mydraft != null)
-                    for (let i = 0; i < this.mydraft.length; i++){
-                        if(this.mydraft[i].comment != ""){
-                            this.commentCntList[i] = this.mydraft[i].comment.split("-").length
-                        }else{
-                            this.commentCntList[i] = 0
-                        }
-                        if(this.mydraft[i].zan != ""){
-                            this.zanCntList[i] = this.mydraft[i].zan.split("-").length
-                        }else{
-                            this.zanCntList[i] = 0
-                        }
-                        
-                        if(this.mydraft[i].book != ""){
-                            this.bookCntList[i] = this.mydraft[i].book.split("-").length
-                        }else{
-                            this.bookCntList[i] = 0
-                        }
-                    }
+                    this.mydraft.forEach(val => {
+                        if (val.ZanList == null)
+                            val.ZanList = []
+                        if (val.BookList == null)
+                            val.BookList = []
+                        if (val.CommentList == null)
+                            val.CommentList = []
+                    })
             })
         },
         data() {
             return {
                 mydraft: [],
                 url: 'http://localhost:8090/article/getcover?cover=',
-                // srcList: ['https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg'],
-                visitmode: false,
                 current: '',
-                commentCntList: [],
-                zanCntList: [],
-                bookCntList: [],
             }
         },
         methods: {
-            updateCurrent(val) {
-                this.current = val
-                axios.get("http://localhost:8090/user/getdraft",{
-                    params:{
-                        uid: this.current.uid
-                    }
-                }).then(res => {
-                    this.mydraft = res.data.postlist
-                })
-            },
             alter(val){
                 // console.log("jump start>>>>", val)
                 let form = {
@@ -151,12 +119,43 @@ import {mapState} from 'vuex'
                     form.content = res.data.article.content
                 })
                 this.$store.commit('setDraftForm', form)
-                this.$router.push('/newArticle')
+                this.$router.push('/article/modify')
                 // console.log("jump done>>>>", val)
             },
             goTopic(val){
                 this.$router.push('/topic/' + val)
             },
+            tDetail(val){
+                this.$router.push('/details/' + val)
+            },
+            zan(article,index){
+                if(this.token == ''){
+                    this.$message.warning("需要登录才能操作哦")
+                    return
+                }
+                this.$store.commit('zan',{article:article,token:this.token})
+                this.mydraft[index].ZanList.push("...")
+                this.mydraft[index].IsZan = true
+            },
+            cancelZan(article,index){
+                this.$store.commit('cancelZan',{article:article,token:this.token})
+                this.mydraft[index].ZanList.pop()
+                this.mydraft[index].IsZan = false
+            },
+            book(article,index){
+                if(this.token == ''){
+                    this.$message.warning("需要登录才能操作哦")
+                    return
+                }
+                this.$store.commit('book',{article:article,token:this.token})
+                this.mydraft[index].BookList.push("...")
+                this.mydraft[index].IsBook = true
+            },
+            cancelBook(article,index){
+                this.$store.commit('cancelBook',{article:article,token:this.token})
+                this.mydraft[index].BookList.pop()
+                this.mydraft[index].IsBook = false
+            }
         },
     }
 </script>

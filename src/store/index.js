@@ -5,6 +5,7 @@ import articles from './articles'
 import spacelist from './spacelist'
 import search from './search'
 import manage from './manage'
+import notice from './notice'
 
 Vue.use(Vuex)
 
@@ -15,5 +16,6 @@ export default new Vuex.Store({
         spacelist,
         search,
         manage,
+        notice,
     }
 })

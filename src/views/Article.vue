@@ -7,20 +7,26 @@
             <el-col :span="2" style="text-align:center;" align="middle">
                 <el-card shadow="never" :body-style="{ padding: '0px' }">
                     <el-card shadow="never" class="card">
-                        <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-zan0">
-                            {{zanCnt}}
+                        <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-zan0" @click="zan(article)" v-if="!iszan">
+                            {{zanlist.length}}
+                        </el-button>
+                        <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-zan" @click="cancelZan(article)" v-if="iszan">
+                            {{zanlist.length}}
                         </el-button>
                     </el-card>
                     <el-divider></el-divider>
                     <el-card shadow="never" class="card">
-                        <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-off">
-                            {{bookCnt}}
+                        <el-button type="text" style="width:100%;font-size:22px" icon="el-icon-star-off" @click="book(article)" v-if="!isbook">
+                            {{booklist.length}}
+                        </el-button>
+                        <el-button type="text" style="width:100%;font-size:22px" icon="el-icon-star-on" @click="cancelBook(article)" v-if="isbook">
+                            {{booklist.length}}
                         </el-button>
                     </el-card>
                     <el-divider></el-divider>
                     <el-card shadow="never" class="card">
                         <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-chat-dot-round">
-                            {{commentCnt}}
+                            {{commentlist.length}}
                         </el-button>
                     </el-card>
                     <div v-show="!visitmode">
@@ -58,13 +64,19 @@
                     <el-divider></el-divider>
                     <el-row type="flex" justify="space-around">
                         <el-col :span="8">
-                            <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-zan0">
-                                {{zanCnt}}
+                            <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-zan0" @click="zan(article)" v-if="!iszan">
+                                {{zanlist.length}}
+                            </el-button>
+                            <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-zan" @click="cancelZan(article)" v-if="iszan">
+                                {{zanlist.length}}
                             </el-button>
                         </el-col>
                         <el-col :span="8">
-                            <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-off">
-                                {{bookCnt}}
+                            <el-button type="text" style="width:100%;font-size:22px" icon="el-icon-star-off" @click="book(article)" v-if="!isbook">
+                                {{booklist.length}}
+                            </el-button>
+                            <el-button type="text" style="width:100%;font-size:22px" icon="el-icon-star-on" @click="cancelBook(article)" v-if="isbook">
+                                {{booklist.length}}
                             </el-button>
                         </el-col>
                     </el-row>
@@ -155,11 +167,18 @@
                                     {{owner.user_name}}
                                 </el-button>
                             <!-- </div> -->
-                            <div class="sign">
-                                {{owner.sign}}
+                            <div class="sign" v-show="token.user_name != owner.user_name">
+                                <el-button size="small">关注</el-button>
+                                <el-button size="small" type="primary">取消关注</el-button>
                             </div>
                         </el-col>
                     </el-row>
+                </el-card>
+
+                <el-card shadow="never" style="margin-bottom:20px" v-show="owner.sign!=''">
+                    <div class="sign" style="margin:10px 0">
+                        {{owner.sign}}
+                    </div>
                 </el-card>
 
                 <el-card shadow="never" style="">
@@ -270,37 +289,43 @@ import E from "wangeditor"
             }
             axios.get("http://localhost:8090/article/getcontent",{
                 params: {
-                    tid: this.$router.currentRoute.path.split("/")[2]
+                    tid: this.$router.currentRoute.path.split("/")[2],
+                    visit_uid: this.token.uid
                 }
             }).then(res => {
+                // console.log(res.data)
                 if (res.data.notFound == true){ // 输入不存在的帖子id重定向
                     this.$router.push('/notFound')
                     return
                 }
                 this.article = res.data.article
+                this.commentlist = res.data.commentlist
+                this.booklist = res.data.booklist
+                this.zanlist = res.data.zanlist
+                this.iszan = res.data.iszan
+                this.isbook = res.data.isbook
+                if(this.booklist == null)
+                    this.booklist = []
+                if(this.zanlist == null)
+                    this.zanlist = []
                 this.owner = res.data.owner
                 if (this.token == '' || this.owner.user_name != this.token.user_name)
                     this.visitmode = true
                 else
                     this.visitmode = false
-                // 封禁用户的帖子不展示或重定向到另一个页面
-                // if(this.token.user_name == this.owner.user_name)
-                if(new Date(this.owner.state.replace(/-/g, '/')).getTime() > new Date().getTime()){
+                // 封禁用户的帖子不展示或重定向到另一个页面（只有原贴发布者可以查看）
+                if(new Date(this.owner.state.replace(/-/g, '/')).getTime() > new Date().getTime() && this.token.user_name != this.owner.user_name ){
                     this.$router.push('/' + this.owner.uid + '/forbid')
                     return
                 }
-                this.commentlist = res.data.commentlist
-                if (this.article.comment != '')
-                    this.commentCnt = this.article.comment.split("-").length
-                if (this.article.zan != '')
-                    this.zanCnt = this.article.zan.split("-").length
-                if (this.article.book != '')
-                    this.bookCnt = this.article.book.split("-").length
-                if (this.commentlist != null) // 有评论的话
+                if (this.commentlist != null){ // 有评论的话
                     this.commentlist.forEach((key, index) => {
                         key.order = index + 1
                         this.commentOperate.push(false)
                     })
+                }else{
+                    this.commentlist = []
+                }
             })
             // this.url = 'http://localhost:8090/article/getcover?cover='
         },
@@ -317,10 +342,11 @@ import E from "wangeditor"
                 owner: {
                     avatar: '',
                 },
-                commentlist: '',
-                commentCnt: 0,
-                zanCnt: 0,
-                bookCnt: 0,
+                commentlist: [],
+                zanlist: [],
+                iszan:'',
+                isbook:'',
+                booklist: [],
                 editor: '',
                 text: '',
                 isLogin: false, // 判断是否已经登录
@@ -342,6 +368,62 @@ import E from "wangeditor"
                     this.$store.commit('myPost', {visit: false, token: this.token})
                 else
                     this.$store.dispatch('visit', val)
+            },
+            zan(article){
+                if(this.token == ''){
+                    this.$message.warning("需要登录才能操作哦")
+                    return
+                }
+                axios.get('http://localhost:8090/article/zan', {
+                    params: {
+                        uid: this.token.uid,
+                        tid: article.tid,
+                        owner_uid: article.uid,
+                        user_name: this.token.user_name
+                    }
+                })
+                this.zanlist.push("...")
+                this.iszan = true
+            },
+            cancelZan(article){
+                axios.get('http://localhost:8090/article/cancelzan', {
+                    params: {
+                        uid: this.token.uid,
+                        tid: article.tid,
+                        owner_uid: article.uid,
+                    }
+                })
+                this.zanlist.pop()
+                this.iszan = false
+            },
+            book(article){
+                if(this.token == ''){
+                    this.$message.warning("需要登录才能操作哦")
+                    return
+                }
+                axios.get('http://localhost:8090/article/book', {
+                    params: {
+                        uid: this.token.uid,
+                        tid: article.tid,
+                        owner_uid: article.uid,
+                        user_name: this.token.user_name
+                    }
+                }).then(res => {
+                    console.log(res)
+                })
+                this.booklist.push("...")
+                this.isbook = true
+            },
+            cancelBook(article){
+                axios.get('http://localhost:8090/article/cancelbook', {
+                    params: {
+                        uid: this.token.uid,
+                        tid: article.tid,
+                        owner_uid: article.uid,
+                    }
+                })
+                this.booklist.pop()
+                this.isbook = false
             },
             submitComment(){ // 提交评论
                 if (new Date(this.token.state.replace(/-/g, '/')).getTime() > new Date().getTime()){
@@ -375,8 +457,10 @@ import E from "wangeditor"
                 params.append("uid", comment.uid)
                 if(comment.user_name == this.token.user_name)
                     params.append("active", true) // 用户主动删除
-                else
+                else{
                     params.append("active", false)
+                    params.append("user_name", this.token.user_name)
+                }
                 axios.post('http://localhost:8090/notice/deletecomment', params, this.config).then(res => {
                     if(res.data.deleteComment){
                         this.$message.success(res.data.msg)
@@ -393,6 +477,7 @@ import E from "wangeditor"
                 }
                 let params = new FormData()
                 params.append("user_name", this.token.user_name)
+                params.append("uid", this.token.uid)
                 params.append("type", type)
                 if (type == 'article')
                     params.append("tid", this.article.tid)
@@ -425,9 +510,8 @@ import E from "wangeditor"
                 }).then(res => {
                     form.content = res.data.article.content
                 })
-                this.$store.commit('setHistoryPath', this.$router.currentRoute.path)
                 this.$store.commit('setDraftForm', form)
-                this.$router.push('/newArticle')
+                this.$router.push('/article/modify')
             },
         },
     }

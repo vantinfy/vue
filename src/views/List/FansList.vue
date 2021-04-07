@@ -73,6 +73,8 @@ import {mapState} from 'vuex'
                 }
             }).then(res => {
                 this.fanslist = res.data.fanslist
+                if (this.fanslist != null)
+                    this.fanslist.reverse()
             })
         },
         methods:{

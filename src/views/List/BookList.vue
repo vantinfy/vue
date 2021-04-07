@@ -8,49 +8,55 @@
             <el-card v-for="(book, index) in mybook" :key="index" shadow="nerver" style="margin-bottom:10px">
                 <el-row type="flex" align="middle">
                     <el-col :span="2">
-                        <el-avatar :size="30" style="" :src="headUrl + owner[index].avatar"></el-avatar>
+                        <el-avatar :size="30" style="" :src="headUrl + book.Avatar"></el-avatar>
                     </el-col>
                     <el-col :span="4">
-                        <el-button type="text" class="book" @click="visit(owner[index].user_name)">
-                            {{owner[index].user_name}}
+                        <el-button type="text" class="book" @click="visit(book.UserName)">
+                            {{book.UserName}}
                         </el-button>
                     </el-col>
                     <el-col :span="14"></el-col>
                     <el-col :span="4">
-                        <span style="font-size:12px;color:grey;">{{book.create_time.split(" ")[0]}}</span>
+                        <span style="font-size:12px;color:grey;">{{book.Article.create_time.split(" ")[0]}}</span>
                     </el-col>
                 </el-row>
                 <div>
-                    <el-button type="text" class="title content">
-                        {{book.title}}
+                    <el-button type="text" class="title content" @click="tDetail(book.Article.tid)">
+                        {{book.Article.title}}
                     </el-button>
                 </div>
-                <div class="content" style="margin-bottom:4px" v-html="book.content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')"></div>
+                <div class="content" style="margin-bottom:4px" v-html="book.Article.content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')"></div>
                 <el-image 
                     style="width: 30%;"
-                    :src="url + book.cover"
-                    :preview-src-list="[url + book.cover]">
+                    :src="url + book.Article.cover"
+                    :preview-src-list="[url + book.Article.cover]">
                 </el-image>
                 <el-divider></el-divider>
                 <el-row type="flex" align="middle" justify="space-around">
                     <el-col :span="14">
                         <el-button size="mini" round>
-                            {{book.topic}}
+                            {{book.Article.topic}}
                         </el-button>
                     </el-col>
                     <el-col :span="3">
-                        <el-button type="text" style="width:100%" icon="el-icon-zan0">
-                            {{bookCntList[index]}}
+                        <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-zan" @click="cancelZan(book,index)" v-if="book.IsZan">
+                            {{book.ZanList.length}}
+                        </el-button>
+                        <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-zan0" @click="zan(book,index)" v-if="!book.IsZan">
+                            {{book.ZanList.length}}
                         </el-button>
                     </el-col>
                     <el-col :span="3">
-                        <el-button type="text" style="width:100%" icon="el-icon-star-off">
-                            {{bookCntList[index]}}
+                        <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-on" @click="cancelBook(book,index)" v-if="book.IsBook">
+                            {{book.BookList.length}}
+                        </el-button>
+                        <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-off" @click="book(book,index)" v-if="!book.IsBook">
+                            {{book.BookList.length}}
                         </el-button>
                     </el-col>
                     <el-col :span="3">
-                        <el-button type="text" style="width:100%" icon="el-icon-chat-dot-round">
-                            {{commentCntList[index]}}
+                        <el-button type="text" style="width:100%;font-size:18px" icon="el-icon-chat-dot-round">
+                            {{book.CommentList.length}}
                         </el-button>
                     </el-col>
                 </el-row>
@@ -84,38 +90,29 @@ import {mapState} from 'vuex'
         mounted () {
             if(this.$router.currentRoute.path.split("/")[1] == "visit"){
                 this.visitmode = true
-                this.current = this.visitUser.user_name
+                this.current = this.visitUser
             }
             else{
                 this.visitmode = false
-                this.current = this.token.user_name
+                this.current = this.token
             }
             axios.get("http://localhost:8090/user/getmybook",{
                 params:{
-                    username: this.current
+                    uid: this.current.uid,
+                    visit_uid:this.current.uid,
                 }
             }).then(res =>{
+                // console.log(res.data)
                 this.mybook = res.data.booklist
-                this.owner = res.data.owner
-                if (this.mybook != null)
-                    for (let i = 0; i < this.mybook.length; i++){
-                        if(this.mybook[i].comment != ""){
-                            this.commentCntList[i] = this.mybook[i].comment.split("-").length
-                        }else{
-                            this.commentCntList[i] = 0
-                        }
-                        if(this.mybook[i].zan != ""){
-                            this.zanCntList[i] = this.mybook[i].zan.split("-").length
-                        }else{
-                            this.zanCntList[i] = 0
-                        }
-                        
-                        if(this.mybook[i].book != ""){
-                            this.bookCntList[i] = this.mybook[i].book.split("-").length
-                        }else{
-                            this.bookCntList[i] = 0
-                        }
-                    }
+                if(this.mybook != null)
+                    this.mybook.forEach(val => {
+                        if (val.ZanList == null)
+                            val.ZanList = []
+                        if (val.BookList == null)
+                            val.BookList = []
+                        if (val.CommentList == null)
+                            val.CommentList = []
+                    })
             })
         },
         data() {
@@ -128,9 +125,6 @@ import {mapState} from 'vuex'
                 visitmode: false,
                 current: '',
                 visitmode: false,
-                commentCntList: [],
-                zanCntList: [],
-                bookCntList: [],
             }
         },
         methods:{
@@ -153,6 +147,37 @@ import {mapState} from 'vuex'
                 }).then(res =>{
                     this.mypost = res.data.postlist
                 })
+            },
+            tDetail(val){
+                this.$router.push('/details/' + val)
+            },
+            zan(article,index){
+                if(this.token == ''){
+                    this.$message.warning("需要登录才能操作哦")
+                    return
+                }
+                this.$store.commit('zan',{article:article,token:this.token})
+                this.mybook[index].ZanList.push("...")
+                this.mybook[index].IsZan = true
+            },
+            cancelZan(article,index){
+                this.$store.commit('cancelZan',{article:article,token:this.token})
+                this.mybook[index].ZanList.pop()
+                this.mybook[index].IsZan = false
+            },
+            book(article,index){
+                if(this.token == ''){
+                    this.$message.warning("需要登录才能操作哦")
+                    return
+                }
+                this.$store.commit('book',{article:article,token:this.token})
+                this.mybook[index].BookList.push("...")
+                this.mybook[index].IsBook = true
+            },
+            cancelBook(article,index){
+                this.$store.commit('cancelBook',{article:article,token:this.token})
+                this.mybook[index].BookList.pop()
+                this.mybook[index].IsBook = false
             }
         },
     }

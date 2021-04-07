@@ -5,12 +5,12 @@ Vue.use(VueRouter)
 
 const routes = [{
         path: '/',
-        // name: 'Home',
+        name: 'Home',
         component: () =>
             import ('../views/Index.vue')
     },
     {
-        path: '/newArticle',
+        path: '/article/:mode',
         component: () =>
             import ('../views/NewArticle.vue')
     },
@@ -30,7 +30,7 @@ const routes = [{
             import ('../views/Visit.vue')
     },
     {
-        path: '/article/:tid',
+        path: '/details/:tid',
         component: () =>
             import ('../views/Article.vue')
     },
