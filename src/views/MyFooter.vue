@@ -109,11 +109,21 @@ import {mapState} from 'vuex'
                 params.append("type", "feedback")
                 params.append("user_name", this.token.user_name)
                 params.append("uid", this.token.uid)
-                axios.post('http://localhost:8090/notice/feedback', params, this.config).then(res => {
+                axios.post(this.api + 'notice/feedback', params, this.config).then(res => {
                     if(res.data.isFeedback)
-                        this.$message.success(res.data.msg)
+                        this.$notify({
+                            title: res.data.msg,
+                            message: '管理员会尽快核实',
+                            type: 'success',
+                            offset: 100
+                        });
                     else
-                        this.$message.warning(res.data.msg)
+                        this.$notify({
+                            title: res.data.msg,
+                            message: '网络好像出了点问题...',
+                            type: 'error',
+                            offset: 100
+                        });
                     this.feedbackView = false
                 })
             }

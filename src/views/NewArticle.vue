@@ -28,7 +28,7 @@
               </el-form-item>
               <el-form-item label="内容：" style="margin:16px 0" prop="content">
                 <editor v-model="draftForm.content" :isClear="isClear"></editor>
-                <!-- <iframe src="http://localhost:8090/article/getcontent" frameborder="0" style="height:300px;width:100%;background-color:pink">
+                <!-- <iframe :src="this.api + 'article/getcontent'" frameborder="0" style="height:300px;width:100%;background-color:pink">
                     {{newArticle}}你好
                 </iframe>-->
               </el-form-item>
@@ -196,7 +196,7 @@ export default {
       } else callback();
     };
     return {
-      url: "http://localhost:8090/article/getcover?cover=",
+      url: this.api + "article/getcover?cover=",
       imgNull: true, // 对尚未上传封面的帖子，不预览封面
       coverChange: false, // 记录用户修改帖子的时候有没有更换封面
       isClear: false, // 清除富文本编辑器内容
@@ -293,7 +293,7 @@ export default {
             headers: { "Content-Type": "multipart/form-data" },
           };
           axios
-            .post("http://localhost:8090/article/upContent", params, config)
+            .post(this.api + "article/upContent", params, config)
             .then((res) => {
               this.newArticle = res.data.content;
               if (res.data.successPublish) {

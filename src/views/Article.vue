@@ -2,7 +2,7 @@
     <div>
         <navigation></navigation>
 
-        <el-row :gutter="0" type="flex" justify="space-around" style="margin-top:60px;padding-top:30px;background-color:#E9EEF3">
+        <el-row :gutter="0" type="flex" justify="space-around" style="margin-top:60px;padding-top:30px;background-color:#E9EEF3" v-loading.fullscreen.lock="loading" element-loading-text="拼命加载中">
             <el-col :span="3"></el-col>
             <el-col :span="2" style="text-align:center;" align="middle">
                 <el-card shadow="never" :body-style="{ padding: '0px' }">
@@ -57,7 +57,7 @@
                     </div>
                     <el-divider></el-divider>
                     <div class="details" v-html="article.content" style="height:auto;"></div>
-                    <div style="text-align:right" v-if="this.token">
+                    <div style="text-align:right" v-if="token != '' && token.uid != owner.uid">
                         <el-button type="text" style="color:grey" icon="el-icon-report" @click="articleReportView = true">举报</el-button>
                     </div>
 
@@ -133,7 +133,7 @@
                                             v-model="commentOperate[index]"
                                             v-if="token != ''">
                                             <div style="text-align:center" >
-                                                <el-button type="text" style="padding:0" v-if="token.user_name == comment.user_name || token.level > 0" @click="deleteComment(comment)">
+                                                <el-button type="text" style="padding:0;margin-bottom:6px;color:red" v-if="token.user_name == comment.user_name || token.level > 0 || owner.uid == token.uid" @click="deleteComment(comment)">
                                                     删除
                                                 </el-button>
                                             </div>
@@ -159,7 +159,7 @@
                 <el-card shadow="never" style="margin-bottom:20px">
                     <el-row type="flex" align="middle">
                         <el-col :span="10">
-                            <el-avatar :size="80" fit="cover" :src="'http://localhost:8090/user/getavatar?username='+owner.avatar"></el-avatar>
+                            <el-avatar :size="80" fit="cover" :src="this.api + 'user/getavatar?username='+owner.avatar"></el-avatar>
                         </el-col>
                         <el-col :span="14">
                             <!-- <div class="name"> -->
@@ -168,8 +168,8 @@
                                 </el-button>
                             <!-- </div> -->
                             <div class="sign" v-show="token.user_name != owner.user_name">
-                                <el-button size="small">关注</el-button>
-                                <el-button size="small" type="primary">取消关注</el-button>
+                                <el-button size="mudium" @click="subs" v-if="!isfollow" round>关注</el-button>
+                                <el-button size="mudium" type="primary" @click="unsubs" v-if="isfollow" round>已关注</el-button>
                             </div>
                         </el-col>
                     </el-row>
@@ -287,7 +287,7 @@ import E from "wangeditor"
                 this.isLogin = true
                 this.editor.$textElem.attr('contenteditable', true)
             }
-            axios.get("http://localhost:8090/article/getcontent",{
+            axios.get(this.api + "article/getcontent",{
                 params: {
                     tid: this.$router.currentRoute.path.split("/")[2],
                     visit_uid: this.token.uid
@@ -304,6 +304,7 @@ import E from "wangeditor"
                 this.zanlist = res.data.zanlist
                 this.iszan = res.data.iszan
                 this.isbook = res.data.isbook
+                this.isfollow = res.data.isfollow
                 if(this.booklist == null)
                     this.booklist = []
                 if(this.zanlist == null)
@@ -326,13 +327,14 @@ import E from "wangeditor"
                 }else{
                     this.commentlist = []
                 }
+                this.loading = false
             })
-            // this.url = 'http://localhost:8090/article/getcover?cover='
+            // this.url = this.api + 'article/getcover?cover='
         },
         data() {
             return{
-                url: 'http://localhost:8090/article/getcover?cover=',
-                headUrl: 'http://localhost:8090/user/getavatar?uid=',
+                url: this.api + 'article/getcover?cover=',
+                headUrl: this.api + 'user/getavatar?uid=',
                 reason: '',
                 visitmode: '',
                 article: {
@@ -346,6 +348,7 @@ import E from "wangeditor"
                 zanlist: [],
                 iszan:'',
                 isbook:'',
+                isfollow:'',
                 booklist: [],
                 editor: '',
                 text: '',
@@ -356,7 +359,8 @@ import E from "wangeditor"
                 articleReportView: false,
                 config: {
                     headers:{'Content-Type':'multipart/form-data'}
-                }
+                },
+                loading: true
             }
         },
         methods: {
@@ -369,12 +373,32 @@ import E from "wangeditor"
                 else
                     this.$store.dispatch('visit', val)
             },
+            subs(){
+                axios.get(this.api + 'user/subscribe', {
+                    params: {
+                        follow_uid: this.token.uid,
+                        follow_name: this.token.user_name,
+                        be_follow_uid: this.owner.uid,
+                        be_follow_name: this.owner.user_name
+                    }
+                })
+                this.isfollow = true
+            },
+            unsubs(){
+                axios.get(this.api + 'user/unsubscribe', {
+                    params: {
+                        uid: this.token.uid,
+                        target_uid: this.owner.uid,
+                    }
+                })
+                this.isfollow = false
+            },
             zan(article){
                 if(this.token == ''){
                     this.$message.warning("需要登录才能操作哦")
                     return
                 }
-                axios.get('http://localhost:8090/article/zan', {
+                axios.get(this.api + 'article/zan', {
                     params: {
                         uid: this.token.uid,
                         tid: article.tid,
@@ -386,7 +410,7 @@ import E from "wangeditor"
                 this.iszan = true
             },
             cancelZan(article){
-                axios.get('http://localhost:8090/article/cancelzan', {
+                axios.get(this.api + 'article/cancelzan', {
                     params: {
                         uid: this.token.uid,
                         tid: article.tid,
@@ -401,21 +425,19 @@ import E from "wangeditor"
                     this.$message.warning("需要登录才能操作哦")
                     return
                 }
-                axios.get('http://localhost:8090/article/book', {
+                axios.get(this.api + 'article/book', {
                     params: {
                         uid: this.token.uid,
                         tid: article.tid,
                         owner_uid: article.uid,
                         user_name: this.token.user_name
                     }
-                }).then(res => {
-                    console.log(res)
                 })
                 this.booklist.push("...")
                 this.isbook = true
             },
             cancelBook(article){
-                axios.get('http://localhost:8090/article/cancelbook', {
+                axios.get(this.api + 'article/cancelbook', {
                     params: {
                         uid: this.token.uid,
                         tid: article.tid,
@@ -441,7 +463,7 @@ import E from "wangeditor"
                 params.append("tid", this.article.tid)
                 params.append("comment", this.editor.txt.html())
                 params.append("target_uid", this.owner.uid)
-                axios.post('http://localhost:8090/notice/submitcomment', params, this.config).then(res => {
+                axios.post(this.api + 'notice/submitcomment', params, this.config).then(res => {
                     if(res.data.successComment){
                         this.$message.success(res.data.msg)
                         this.reload()
@@ -460,8 +482,9 @@ import E from "wangeditor"
                 else{
                     params.append("active", false)
                     params.append("user_name", this.token.user_name)
+                    params.append("operator_uid", this.token.uid)
                 }
-                axios.post('http://localhost:8090/notice/deletecomment', params, this.config).then(res => {
+                axios.post(this.api + 'notice/deletecomment', params, this.config).then(res => {
                     if(res.data.deleteComment){
                         this.$message.success(res.data.msg)
                         this.reload()
@@ -484,12 +507,22 @@ import E from "wangeditor"
                 else
                     params.append("cid", this.reportComment)
                 params.append("reason", this.reason)
-                axios.post('http://localhost:8090/notice/report',params,this.config).then(res => {
+                axios.post(this.api + 'notice/report',params,this.config).then(res => {
                     if(res.data.isReported){
-                        this.$message.success(res.data.msg)
+                        this.$notify({
+                            title: res.data.msg,
+                            message: '管理员会尽快核实',
+                            type: 'success',
+                            offset: 100
+                        });
                     }
                     else{
-                        this.$message.error(res.data.msg)
+                        this.$notify({
+                            title: res.data.msg,
+                            message: '网络好像出了点问题...',
+                            type: 'error',
+                            offset: 100
+                        });
                     }
                     this.articleReportView = false
                     this.commentReportView = false
@@ -503,7 +536,7 @@ import E from "wangeditor"
                     cover: val.cover,
                     isNewArticle: val.tid,
                 }
-                axios.get('http://localhost:8090/article/getcontent',{
+                axios.get(this.api + 'article/getcontent',{
                     params:{
                         tid: val.tid
                     }

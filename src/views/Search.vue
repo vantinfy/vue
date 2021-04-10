@@ -66,23 +66,23 @@
                                             </el-col>
                                             <el-col :span="3">
                                                 <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-zan" @click="cancelZan(article,index)" v-if="article.IsZan">
-                                                    {{article.ZanList.length}}
+                                                    {{article.ZanCount}}
                                                 </el-button>
                                                 <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-zan0" @click="zan(article,index)" v-if="!article.IsZan">
-                                                    {{article.ZanList.length}}
+                                                    {{article.ZanCount}}
                                                 </el-button>
                                             </el-col>
                                             <el-col :span="3">
                                                 <el-button type="text" style="width:100%;font-size:20px;" icon="el-icon-star-on" @click="cancelBook(article,index)" v-if="article.IsBook">
-                                                    {{article.BookList.length}}
+                                                    {{article.BookCount}}
                                                 </el-button>
                                                 <el-button type="text" style="width:100%;font-size:20px;" icon="el-icon-star-off" @click="book(article,index)" v-if="!article.IsBook">
-                                                    {{article.BookList.length}}
+                                                    {{article.BookCount}}
                                                 </el-button>
                                             </el-col>
                                             <el-col :span="3">
                                                 <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-chat-dot-round" @click="tDetail(article.Article.tid)">
-                                                    {{article.CommentList.length}}
+                                                    {{article.CommentCount}}
                                                 </el-button>
                                             </el-col>
                                         </el-row>
@@ -92,20 +92,23 @@
                                     <el-card v-for="(user, index) in userlist" :key="index" shadow="nerver" style="margin-top:20px">
                                         <el-row type="flex" align="middle">
                                             <el-col :span="3">
-                                                <el-avatar :size="60" style="" :src="headUrl+user.avatar"></el-avatar>
+                                                <el-avatar :size="60" style="" :src="headUrl+user.User.avatar"></el-avatar>
                                             </el-col>
                                             <el-col :span="14">
-                                                <el-button type="text" class="name" @click="visit(user.user_name)">
-                                                    {{user.user_name}}
+                                                <el-button type="text" class="name" @click="visit(user.User.user_name)">
+                                                    {{user.User.user_name}}
                                                 </el-button>
                                                 <div class="content" style="font-size:14px">
-                                                    {{user.sign}}
+                                                    {{user.User.sign}}
                                                 </div>
                                             </el-col>
-                                            <el-col :span="4"></el-col>
-                                            <el-col :span="4">
-                                                <el-button round @click="subscribe">
+                                            <el-col :span="3"></el-col>
+                                            <el-col :span="5" style="text-align:center">
+                                                <el-button round @click="subscribe(user,index)" v-if="!user.IsFollowed">
                                                     关注
+                                                </el-button>
+                                                <el-button round type="primary" @click="unsubscribe(user,index)" v-if="user.IsFollowed">
+                                                    已关注
                                                 </el-button>
                                             </el-col>
                                         </el-row>
@@ -157,8 +160,8 @@ import {mapState} from 'vuex'
         data() {
             return {
                 // input: '',
-                headUrl: 'http://localhost:8090/user/getavatar?username=',
-                url: 'http://localhost:8090/article/getcover?cover=',
+                headUrl: this.api + 'user/getavatar?username=',
+                url: this.api + 'article/getcover?cover=',
                 activeName: 'seek_article',
                 articleInfo: [],
                 userlist: [],
@@ -171,7 +174,7 @@ import {mapState} from 'vuex'
         methods: {
             search(val){
                 this.$store.commit('search', {mode: this.mode, keyword: this.keyword})
-                axios.get("http://localhost:8090/search", {
+                axios.get(this.api + "search", {
                     params: {
                         keyword: this.keyword,
                         mode: this.mode,
@@ -181,15 +184,15 @@ import {mapState} from 'vuex'
                     // console.log(res.data)
                     this.articleInfo = res.data.articleInfo
                     this.userlist = res.data.userlist
-                    if(this.articleInfo != null)
-                        this.articleInfo.forEach(val => {
-                            if (val.CommentList == null)
-                                val.CommentList = []
-                            if (val.ZanList == null)
-                                val.ZanList = []
-                            if (val.BookList == null)
-                                val.BookList = []
-                        })
+                    // if(this.articleInfo != null)
+                    //     this.articleInfo.forEach(val => {
+                    //         if (val.CommentList == null)
+                    //             val.CommentList = []
+                    //         if (val.ZanList == null)
+                    //             val.ZanList = []
+                    //         if (val.BookList == null)
+                    //             val.BookList = []
+                    //     })
                 })
             },
             handleClick(tab) {
@@ -241,8 +244,13 @@ import {mapState} from 'vuex'
                 this.articleInfo[index].BookList.pop()
                 this.articleInfo[index].IsBook = false
             },
-            subscribe(e){
-                console.log(e)
+            subscribe(user,index){
+                if(this.token == ''){
+                    this.$message.warning("需要登录才能操作哦")
+                    return
+                }
+                this.$store.commit('subscribe',{token:this.token,user:user})
+                this.userlist[index].IsFollowed = true
                 // let target = e.target;
                 // // 根据button组件内容 里面包括一个span标签，如果设置icon，则还包括一个i标签，其他情况请自行观察。
                 // // 所以，在我们点击到button组件上的文字也就是span标签上时，直接执行e.target.blur()不会生效，所以要加一层判断。
@@ -251,7 +259,10 @@ import {mapState} from 'vuex'
                 // }
                 // target.blur()
             },
-            unsubscribe(val){}
+            unsubscribe(user,index){
+                this.$store.commit('unsubscribe',{token:this.token,user:user})
+                this.userlist[index].IsFollowed = false
+            }
         },
     }
 </script>

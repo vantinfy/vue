@@ -52,7 +52,7 @@ import axios from 'axios'
             }),
         },
         mounted(){
-            axios.get('http://localhost:8090/randUser',{
+            axios.get(this.api + 'randUser',{
                 params:{
                     uid: this.$router.currentRoute.path.split("/")[1]
                 }
@@ -62,7 +62,7 @@ import axios from 'axios'
         },
         data() {
             return {
-                headUrl: 'http://localhost:8090/user/getavatar?username=',
+                headUrl: this.api + 'user/getavatar?username=',
                 user: '' // 用这个过滤掉被封禁的用户的帖子？或者这个页面展示别的用户好了
             }
         },

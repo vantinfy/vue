@@ -74,23 +74,23 @@
                                 </el-col>
                                 <el-col :span="3">
                                     <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-zan" @click="cancelZan(article,index)" v-if="article.IsZan">
-                                        {{article.ZanList.length}}
+                                        {{article.ZanCount}}
                                     </el-button>
                                     <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-zan0" @click="zan(article,index)" v-if="!article.IsZan">
-                                        {{article.ZanList.length}}
+                                        {{article.ZanCount}}
                                     </el-button>
                                 </el-col>
                                 <el-col :span="3">
                                     <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-on" @click="cancelBook(article,index)" v-if="article.IsBook">
-                                        {{article.BookList.length}}
+                                        {{article.BookCount}}
                                     </el-button>
                                     <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-off" @click="book(article,index)" v-if="!article.IsBook">
-                                        {{article.BookList.length}}
+                                        {{article.BookCount}}
                                     </el-button>
                                 </el-col>
                                 <el-col :span="3">
                                     <el-button type="text" style="width:100%;font-size:18px" icon="el-icon-chat-dot-round" @click="tDetail(article.Article.tid)">
-                                        {{article.CommentList.length}}
+                                        {{article.CommentCount}}
                                     </el-button>
                                 </el-col>
                             </el-row>
@@ -128,8 +128,8 @@ import {mapState} from 'vuex'
             })
         },
         mounted() {
-            this.topicUrl = 'http://localhost:8090/topic/getimg?topic=' + this.$router.currentRoute.path.split("/")[2] + ".jpg"
-            axios.get('http://localhost:8090/topic/getlist', {
+            this.topicUrl = this.api + 'topic/getimg?topic=' + this.$router.currentRoute.path.split("/")[2] + ".jpg"
+            axios.get(this.api + 'topic/getlist', {
                 params:{
                     topic: this.$router.currentRoute.path.split("/")[2],
                     visit_uid: this.token.uid
@@ -140,22 +140,22 @@ import {mapState} from 'vuex'
                     return
                 }
                 this.articlelist = res.data.articlelist
-                this.articlelist.forEach(val => {
-                    if (val.CommentList == null)
-                        val.CommentList = []
-                    if (val.ZanList == null)
-                        val.ZanList = []
-                    if (val.BookList == null)
-                        val.BookList = []
-                })
+                // this.articlelist.forEach(val => {
+                //     if (val.CommentList == null)
+                //         val.CommentList = []
+                //     if (val.ZanList == null)
+                //         val.ZanList = []
+                //     if (val.BookList == null)
+                //         val.BookList = []
+                // })
             })
         },
         data(){
             return{
                 topicUrl: '',
-                url: 'http://localhost:8090/article/getcover?cover=',
+                url: this.api + 'article/getcover?cover=',
                 articlelist: [],
-                headUrl: 'http://localhost:8090/user/getavatar?username=',
+                headUrl: this.api + 'user/getavatar?username=',
             }
         },
         methods:{

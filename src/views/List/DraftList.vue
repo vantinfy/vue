@@ -5,12 +5,25 @@
                 <span>我的草稿</span>
             </div>
             <el-card v-for="(article, index) in mydraft" :key="index" shadow="nerver" style="margin-bottom:10px">
-                <div>
-                    <i class="el-icon-time"></i>
-                    <span style="margin-left:10px;font-size:14px;color:grey">
-                        {{article.Article.create_time}}
-                    </span>
-                </div>
+                <el-row type="flex" align="middle">
+                    <el-col :span="20">
+                        <i class="el-icon-time"></i>
+                        <span style="margin-left:10px;font-size:14px;color:grey">
+                            {{article.Article.create_time}}
+                        </span>
+                    </el-col>
+                    <el-col :span="4" style="text-align:right;">
+                        <el-popover
+                            placement="right"
+                            width="160"
+                            v-model="delHint[index]">
+                            <div style="text-align: center; margin: 0">
+                                <el-button type="text" size="mini" @click="delDraft(article, index)" style="padding:0;color:red;font-size:16px">删除</el-button>
+                            </div>
+                            <el-button type="text" slot="reference" style="font-size:16px;font-weight:bolder;color:black;padding:0">···</el-button>
+                        </el-popover>
+                    </el-col>
+                </el-row>
                 <div>
                     <el-button type="text" class="title content" @click="alter(article.Article)">
                         {{article.Article.title}}
@@ -32,23 +45,23 @@
                     </el-col>
                     <el-col :span="3">
                         <el-button type="text" style="width:100%;font-size:18px" icon="el-icon-zan" @click="cancelZan(article,index)" v-if="article.IsZan">
-                            {{article.ZanList.length}}
+                            {{article.ZanCount}}
                         </el-button>
                         <el-button type="text" style="width:100%;font-size:18px" icon="el-icon-zan0" @click="zan(article,index)" v-if="!article.IsZan">
-                            {{article.ZanList.length}}
+                            {{article.ZanCount}}
                         </el-button>
                     </el-col>
                     <el-col :span="3">
                         <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-on" @click="cancelBook(article,index)" v-if="article.IsBook">
-                            {{article.BookList.length}}
+                            {{article.BookCount}}
                         </el-button>
                         <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-off" @click="book(article,index)" v-if="!article.IsBook">
-                            {{article.BookList.length}}
+                            {{article.BookCount}}
                         </el-button>
                     </el-col>
                     <el-col :span="3">
                         <el-button type="text" style="width:100%;font-size:18px" icon="el-icon-chat-dot-round" @click="tDetail(article.Article.tid)">
-                            {{article.CommentList.length}}
+                            {{article.CommentCount}}
                         </el-button>
                     </el-col>
                 </el-row>
@@ -64,6 +77,7 @@
 import axios from 'axios'
 import {mapState} from 'vuex'
     export default {
+        inject:['reload'],
         computed: {
             ...mapState({
                 token: state => state.users.token,
@@ -76,29 +90,34 @@ import {mapState} from 'vuex'
                 this.$router.go(-1)
                 return
             }
-            axios.get("http://localhost:8090/user/getdraft",{
+            axios.get(this.api + "user/getdraft",{
                 params:{
                     uid: this.token.uid,
                     visit_uid:this.token.uid,
                 }
             }).then(res =>{
                 this.mydraft = res.data.draftlist
-                if(this.mydraft != null)
+                if (this.mydraft != null)
                     this.mydraft.forEach(val => {
-                        if (val.ZanList == null)
-                            val.ZanList = []
-                        if (val.BookList == null)
-                            val.BookList = []
-                        if (val.CommentList == null)
-                            val.CommentList = []
+                        this.delHint.push(false)
                     })
+                // if(this.mydraft != null)
+                //     this.mydraft.forEach(val => {
+                //         if (val.ZanList == null)
+                //             val.ZanList = []
+                //         if (val.BookList == null)
+                //             val.BookList = []
+                //         if (val.CommentList == null)
+                //             val.CommentList = []
+                //     })
             })
         },
         data() {
             return {
                 mydraft: [],
-                url: 'http://localhost:8090/article/getcover?cover=',
+                url: this.api + 'article/getcover?cover=',
                 current: '',
+                delHint: [],
             }
         },
         methods: {
@@ -111,7 +130,7 @@ import {mapState} from 'vuex'
                     cover: val.cover,
                     isNewArticle: val.tid,
                 }
-                axios.get('http://localhost:8090/article/getcontent',{
+                axios.get(this.api + 'article/getcontent',{
                     params:{
                         tid: val.tid
                     }
@@ -121,6 +140,24 @@ import {mapState} from 'vuex'
                 this.$store.commit('setDraftForm', form)
                 this.$router.push('/article/modify')
                 // console.log("jump done>>>>", val)
+            },
+            delDraft(article,index){
+                axios.get(this.api + 'user/delmyarticle',{
+                    params:{
+                        tid: article.Article.tid
+                    }
+                }).then(res  => {
+                    if(res.data.isDelete)
+                        this.reload()
+                    else
+                        this.$notify({
+                            title: '网络好像出了点问题，稍后再试试吧',
+                            type: 'error',
+                            offset: 100
+                        })
+                })
+                // this.mypost[index]
+                // this.reload()
             },
             goTopic(val){
                 this.$router.push('/topic/' + val)

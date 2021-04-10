@@ -15,6 +15,8 @@
                                 <el-col :span="12" style="text-align:left;margin:10px 0">
                                     <div class="name">
                                         {{token.user_name}}
+                                        <span v-if="token.sex=='男'" style="margin-left:6px;color:#4169E1;font-weight:bolder">♂</span>
+                                        <span v-if="token.sex=='女'" style="margin-left:6px;color:#FF1493;font-weight:bolder">♀</span>
                                         <span style="margin-left:20px;font-weight:thin;font-size:14px">uid:{{token.uid}}</span>
                                     </div>
                                     <span style="margin-bottom:10px;color:#be002f;font-weight:thin;font-size:14px" v-show="silence">
@@ -70,7 +72,7 @@
                                             </el-radio-group>
                                             </el-form-item>
                                             <el-form-item label="密码" :label-width="formLabelWidth">
-                                                <el-input v-model="form.pwd" autocomplete="off" placeholder="请输入新密码" maxlength="20" show-word-limit clearable></el-input>
+                                                <el-input v-model="form.pwd" autocomplete="off" placeholder="请输入新密码（不填或密码长度少于4默认保持旧密码哦）" maxlength="20" show-word-limit clearable></el-input>
                                             </el-form-item>
                                             <el-form-item label="签名" :label-width="formLabelWidth">
                                                 <el-input v-model="form.sign" autocomplete="off" placeholder="请输入新签名" maxlength="48" show-word-limit clearable></el-input>
@@ -87,11 +89,11 @@
                                 <el-col :span="8" style="text-align:center;margin:10px 0">
                                     <el-row>
                                         <el-col :span="8">
-                                            <el-button type="text" style="padding-bottom:0;font-size:18px" @click="myFollow()">{{followCnt}}</el-button>
+                                            <el-button type="text" style="padding-bottom:0;font-size:18px" @click="myFollow()">{{follow_fans_cnt.follow_cnt}}</el-button>
                                             <div>关注</div>
                                         </el-col>
                                         <el-col :span="8">
-                                            <el-button type="text" style="padding-bottom:0;font-size:18px" @click="myFans()">{{fansCnt}}</el-button>
+                                            <el-button type="text" style="padding-bottom:0;font-size:18px" @click="myFans()">{{follow_fans_cnt.fans_cnt}}</el-button>
                                             <div>粉丝</div>
                                         </el-col>
                                         <el-col :span="8">
@@ -124,20 +126,22 @@
                                 </el-button>
                             </el-card>
                             <el-card shadow="nerver" :body-style="{ padding: '0px' }" class="card">
-                                <el-button type="text" style="width:100%" icon="el-icon-chat-line-round">
+                                <el-button type="text" style="width:100%" icon="el-icon-chat-line-round" @click="myComment()">
                                     我的评论
                                 </el-button>
                             </el-card>
-                            <el-card shadow="nerver" :body-style="{ padding: '0px' }" class="card" v-if="silence">
+                            <el-divider></el-divider>
+                            <el-card shadow="nerver" :body-style="{ padding: '0px' }" class="card">
                                 <el-button type="text" style="width:100%" icon="el-icon-warning-outline" @click="appealVisible = true">
                                     禁言申诉
+                                    <el-badge is-dot v-show="silence"></el-badge>
                                 </el-button>
                             </el-card>
                             <el-dialog title="提交申诉" :visible.sync="appealVisible">
                                 <el-form :model="appealForm">
-                                    <!-- <el-form-item label="具体帖子链接（选填）" >
-                                        <el-input v-model="appealForm.link" placeholder="请输入链接" maxlength="64" show-word-limit clearable></el-input>
-                                    </el-form-item> -->
+                                    <el-form-item label="参考id（选填）">
+                                        <el-input v-model="appealForm.link" placeholder="可以到系统通知中查看被管理员删除的帖子或评论的id号" maxlength="64" show-word-limit clearable></el-input>
+                                    </el-form-item>
                                     <el-form-item label="申诉理由" >
                                         <el-input v-model="appealForm.reason" type="textarea" :autosize="{ minRows: 6, maxRows: 6}" placeholder="请输入申诉理由" maxlength="300" show-word-limit clearable></el-input>
                                     </el-form-item>
@@ -169,6 +173,7 @@
                             <el-card shadow="nerver" :body-style="{ padding: '0px' }" class="card">
                                 <el-button type="text" style="width:100%" icon="el-icon-message-solid" @click="myMessage()">
                                     我的消息
+                                    <el-badge is-dot v-show="token!='' && (systemNoticeCnt != 0 || commentNoticeCnt != 0 || subscribeNoticeCnt != 0 || zanBookNoticeCnt != 0)"></el-badge>
                                 </el-button>
                             </el-card>
                             <el-card shadow="nerver" :body-style="{ padding: '0px' }" class="card">
@@ -214,6 +219,7 @@
                     <el-col :span="17" >
                         <post-list v-show="post"></post-list>
                         <draft-list v-show="draft"></draft-list>
+                        <comment-list v-show="comment"></comment-list>
                         <book-list v-show="book"></book-list>
                         <follow-list v-show="follow"></follow-list>
                         <fans-list v-show="fans"></fans-list>
@@ -244,6 +250,7 @@ import MessageList from './List/MessageList'
 import BookList from './List/BookList'
 import FollowList from './List/FollowList'
 import FansList from './List/FansList'
+import CommentList from './List/CommentList'
 import MyFooter from './MyFooter'
 import {mapState} from 'vuex'
 import axios from 'axios'
@@ -257,17 +264,26 @@ import axios from 'axios'
             BookList,
             FollowList,
             FansList,
+            CommentList,
             MyFooter
         },
         computed: mapState({
             post: state => state.spacelist.post,
             draft: state => state.spacelist.draft,
+            comment: state => state.spacelist.comment,
             book: state => state.spacelist.book,
             follow: state => state.spacelist.follow,
             fans: state => state.spacelist.fans,
             msg: state => state.spacelist.msg,
             token: state => state.users.token,
             visitUser: state => state.users.visitUser,
+            subscribeNoticeCnt: state => state.notice.subscribeNoticeCnt,
+            systemNoticeCnt: state => state.notice.systemNoticeCnt,
+            commentNoticeCnt: state => state.notice.commentNoticeCnt,
+            zanBookNoticeCnt:state=>state.notice.zanBookNoticeCnt,
+            followlist: state=>state.users.followlist,
+            fanslist: state=>state.users.fanslist,
+            follow_fans_cnt:state=>state.users.follow_fans_cnt,
         }),
         // beforeRouteUpdate (to, from, next) {
         //     // console.log(to)
@@ -309,13 +325,6 @@ import axios from 'axios'
                     pwd: '',
                     sign: '',
                     radio: "保密",
-                    // region: '',
-                    // date1: '',
-                    // date2: '',
-                    // delivery: false,
-                    // type: [],
-                    // resource: '',
-                    // desc: ''
                 },
                 silence: false, // 封禁状态
                 appealForm:{
@@ -323,17 +332,18 @@ import axios from 'axios'
                     link: '',
                 },
                 nowAvatar: [],
-                file:null,
+                file: null,
                 revokeHint: false,
                 formLabelWidth: '120px',
-                followCnt: 0,
-                fansCnt: 0,
+                // followCnt: 0,
+                // fansCnt: 0,
                 config: {
                     headers:{'Content-Type':'multipart/form-data'}
                 }
             }
         },
         mounted(){
+            // console.log(this.follow_fans_cnt)
             if (this.token != ""){
                 if (new Date(this.token.state.replace(/-/g, '/')).getTime() > new Date().getTime())
                     this.silence = true
@@ -341,7 +351,7 @@ import axios from 'axios'
                 this.$router.push('/login')
                 return
             }
-            axios.get('http://localhost:8090/user/getavatar',{
+            axios.get(this.api + 'user/getavatar',{
                 params:{
                     uid: this.$router.currentRoute.path.split('/')[2]
                 }
@@ -351,63 +361,43 @@ import axios from 'axios'
                     return
                 }
             })
+            axios.get(this.api + 'user/refreshuserinfo',{
+                params:{
+                    uid:this.token.uid,
+                }
+            }).then(res => {
+                this.$store.commit('updateToken',res.data.refreshUserInfo)
+            })
             if (this.token.avatar != null)
-                this.headUrl = 'http://localhost:8090/user/getavatar?uid=' + this.$router.currentRoute.path.split('/')[2]
+                this.headUrl = this.api + 'user/getavatar?uid=' + this.$router.currentRoute.path.split('/')[2]
             this.form.name = this.token.user_name
-            this.form.pwd = this.token.password
+            // this.form.pwd = this.token.password // 为了不暴露密码登录成功服务器没有回传密码数据
             this.form.radio = this.token.sex
             this.form.sign = this.token.sign
-            if(this.token.follow != "")
-                this.followCnt = this.token.follow.split("-").length
-            if(this.token.fans != "")
-                this.fansCnt = this.token.fans.split("-").length
+            // if(this.token.follow != "")
+            //     this.followCnt = this.token.follow.split("-").length
+            // if(this.token.fans != "")
+            //     this.fansCnt = this.token.fans.split("-").length
         },
         methods:{
-            // subscribe(){
-            //     let formData = new FormData();
-            //     formData.append("username", this.token.user_name)
-            //     formData.append("uid", this.token.uid)
-            //     // formData.append("target_user", this.appealForm.link);
-            //     // formData.append("appeal_reason", this.appealForm.reason);
-            //     let config = {
-            //         headers:{'Content-Type':'multipart/form-data'}
-            //     };
-            //     axios.post("http://localhost:8090/user/subscribe", formData, config)
-            //         .then(function(res) {
-            //             console.log(res)
-            //         }
-            //     )
-            // },
-            // unsubscribe(){
-            //     let formData = new FormData();
-            //     formData.append("username", this.token.user_name)
-            //     formData.append("uid",this.token.uid)
-            //     // formData.append("target_user", this.appealForm.link);
-            //     // formData.append("appeal_reason", this.appealForm.reason);
-            //     let config = {
-            //         headers:{'Content-Type':'multipart/form-data'}
-            //     };
-            //     axios.post("http://localhost:8090/user/unsubscribe", formData, config)
-            //         .then(function(res) {
-            //             console.log(res)
-            //         }
-            //     )
-            // },
             myPost(){
                 this.$store.commit('myPost', {visit: false, token: this.token})
             },
             myDraft(){
                 this.$store.commit('myDraft', {visit: false, token: this.token})
             },
+            myComment(){
+                this.$store.commit('myComment', {visit: false, token: this.token})
+            },
             myBook(){
                 this.$store.commit('myBook', {visit: false, token: this.token})
             },
             appeal(){//申诉
                 // let that = this
-                if(!this.silence){
-                    this.$message.info('你没有被禁言哦')
-                    return
-                }
+                // if(!this.silence){
+                //     this.$message.success('你没有被禁言哦') // 不止禁言的情况可以申诉，被删除帖子或评论也可以
+                //     return
+                // }
                 let formData = new FormData()
                 if (this.appealForm.reason.replace(/\s|\s/g,'') == ''){
                     this.$message.warning("理由不能为空")
@@ -415,11 +405,25 @@ import axios from 'axios'
                 }
                 formData.append("user_name", this.token.user_name)
                 formData.append("uid", this.token.uid)
-                // formData.append("appeal_link", this.appealForm.link);
+                formData.append("appeal_link", this.appealForm.link);
                 formData.append("type", "appeal")
                 formData.append("appeal_reason", this.appealForm.reason);
-                axios.post("http://localhost:8090/notice/feedback", formData, this.config)
-                this.$message.success("提交成功")
+                axios.post(this.api + "notice/feedback", formData, this.config).then(res => {
+                    if(res.data.isFeedback)
+                        this.$notify({
+                            title: '提交成功',
+                            message: res.data.msg,
+                            type: 'success',
+                            offset: 100
+                        })
+                    else
+                        this.$notify({
+                            title: '提交失败',
+                            message: res.data.msg,
+                            type: 'error',
+                            offset: 100
+                        })
+                })
                 this.appealVisible = false
             },
             myFollow(){
@@ -468,20 +472,6 @@ import axios from 'axios'
                 // this.reload();
                 // this.$router.go(0)
             },
-            upLoad(file) {
-                console.log("submit post")
-                let that = this
-                let formData = new FormData();
-                formData.append("username", this.token.username)
-                formData.append("file", file.file);
-                console.log(file);
-                axios.post("http://localhost:8090/user/modifyavatar", formData, this.config)
-                    .then(function(res) {
-                        // console.log(res)
-                        that.$store.commit('updateToken', res.data.user)
-                    }
-                )
-            },
             handleAvatarSuccess(res, file) {
                 this.$message.success('done')
                 this.nowAvatar = []
@@ -521,7 +511,7 @@ import axios from 'axios'
                 params.append("feedbackContent", this.feedbackContent)
                 params.append("type", "feedback")
                 params.append("user_name", this.token.user_name)
-                axios.post('http://localhost:8090/notice/feedback', params, this.config).then(res => {
+                axios.post(this.api + 'notice/feedback', params, this.config).then(res => {
                     if(res.data.isFeedback)
                         this.$message.success(res.data.msg)
                     else
@@ -533,42 +523,38 @@ import axios from 'axios'
                 let formdata = new FormData()
                 formdata.append("username", this.token.user_name)
                 formdata.append("uid", this.token.uid)
-                axios.post("http://localhost:8090/user/revoke", formdata, this.config)
+                axios.post(this.api + "user/revoke", formdata, this.config)
                 this.exit()
             },
             changeEdit(){ // 修改资料
-                console.log("changedit")
                 // this.$refs.upload.submit();
-                let that = this
                 let formdata = new FormData()
                 formdata.append("uid", this.token.uid)
-                formdata.append("newname", that.form.name)
-                formdata.append("sex", that.form.radio)
-                formdata.append("newpwd", that.form.pwd)
-                formdata.append("newsign", that.form.sign)
+                formdata.append("newname", this.form.name)
+                formdata.append("sex", this.form.radio)
+                formdata.append("newpwd", this.form.pwd)
+                formdata.append("newsign", this.form.sign)
                 
                 let formdata2 = new FormData()
-                formdata2.append("file",this.file.raw)
-                formdata2.append("username",this.token.user_name)
-                axios.post("http://localhost:8090/user/modifyavatar", formdata2, this.config)
-                    .then(function(res) {
-                        // console.log(res)
-                        that.$store.commit('updateToken', res.data.user)
-                    }
-                )
-                axios.post("http://localhost:8090/user/modifyinfo", formdata, this.config)
-                    .then(function(res) {
-                        // console.log(res)
+                if(this.file != null){ // 没有修改头像
+                    formdata2.append("username", this.form.name)
+                    axios.post(this.api + "user/modifyavatar", formdata2, this.config)
+                        .then(res => {
+                            this.$store.commit('updateToken', res.data.user)
+                        }
+                    )
+                }
+                axios.post(this.api + "user/modifyinfo", formdata, this.config)
+                    .then(res => {
                         if(res.data.isUpdate){
-                            that.$store.commit('updateToken', res.data.user)
+                            this.$store.commit('updateToken', res.data.user)
                         }
                     })
                     .catch(function (error) {
                         console.log("can't find:---->", error);
                     })
                 this.dialogFormVisible = false
-                // this.reload()
-                this.$router.go(0)
+                this.reload()
             }
         }
     }

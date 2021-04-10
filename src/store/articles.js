@@ -1,4 +1,5 @@
 import axios from 'axios'
+import Vue from 'vue'
 export default {
     state: {
         totalTop: [],
@@ -15,7 +16,7 @@ export default {
     mutations: {
         // 同步方法
         zan(state, payload) {
-            axios.get('http://localhost:8090/article/zan', {
+            axios.get(Vue.prototype.api + 'article/zan', {
                 params: {
                     uid: payload.token.uid,
                     tid: payload.article.Article.tid,
@@ -25,7 +26,7 @@ export default {
             })
         },
         cancelZan(state, payload) {
-            axios.get('http://localhost:8090/article/cancelzan', {
+            axios.get(Vue.prototype.api + 'article/cancelzan', {
                 params: {
                     uid: payload.token.uid,
                     tid: payload.article.Article.tid,
@@ -34,7 +35,7 @@ export default {
             })
         },
         book(article, payload) {
-            axios.get('http://localhost:8090/article/book', {
+            axios.get(Vue.prototype.api + 'article/book', {
                 params: {
                     uid: payload.token.uid,
                     tid: payload.article.Article.tid,
@@ -44,7 +45,7 @@ export default {
             })
         },
         cancelBook(article, payload) {
-            axios.get('http://localhost:8090/article/cancelbook', {
+            axios.get(Vue.prototype.api + 'article/cancelbook', {
                 params: {
                     uid: payload.token.uid,
                     tid: payload.article.Article.tid,
@@ -69,7 +70,7 @@ export default {
         },
         getTop(state, payload) { // vuex方法延迟——一开始是在action异步中写的，换到mutation还是不行，主要还是因为axios response有延迟，数据还没来得及更新
             console.log("mutations gettop run>>", payload)
-            axios.get('http://localhost:8090/admin/getAllArticle').then(res => {
+            axios.get(Vue.prototype.api + 'admin/getAllArticle').then(res => {
                 console.log("Response")
                 state.totalTop = res.data.allarticles
                 state.totalTopName = res.data.ownerlist

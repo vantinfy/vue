@@ -5,6 +5,7 @@ export default {
     state: {
         post: true,
         draft: false,
+        comment: false,
         book: false,
         follow: false,
         fans: false,
@@ -24,6 +25,7 @@ export default {
             // console.log("rootState.token+++++++++++>>>>>>", payload)
             state.book = false;
             state.draft = false;
+            state.comment = false;
             state.follow = false;
             state.fans = false;
             state.msg = false;
@@ -54,6 +56,7 @@ export default {
         },
         myDraft(state, payload) {
             state.post = false;
+            state.comment = false;
             state.follow = false;
             state.fans = false;
             state.msg = false;
@@ -70,9 +73,29 @@ export default {
                 router.push(path)
             }
         },
+        myComment(state, payload) {
+            state.post = false;
+            state.follow = false;
+            state.fans = false;
+            state.msg = false;
+            state.book = false;
+            state.draft = false;
+            if (state.comment != true)
+                state.comment = !state.comment
+            if (router.currentRoute.params.list != "comment" || router.currentRoute.path.split("/")[1] == "visit") {
+                let path
+                if (payload.visit) {
+                    path = '/visit/' + payload.token.uid + '/commentlist'
+                } else {
+                    path = '/userspace/' + payload.token.uid + '/commentlist'
+                }
+                router.push(path)
+            }
+        },
         myBook(state, payload) {
             state.post = false;
             state.draft = false;
+            state.comment = false;
             state.follow = false;
             state.fans = false;
             state.msg = false;
@@ -91,6 +114,7 @@ export default {
         myFollow(state, payload) {
             state.book = false;
             state.draft = false;
+            state.comment = false;
             state.post = false;
             state.fans = false;
             state.msg = false;
@@ -109,6 +133,7 @@ export default {
         myFans(state, payload) {
             state.book = false;
             state.follow = false;
+            state.comment = false;
             state.post = false;
             state.draft = false;
             state.msg = false;
@@ -127,6 +152,7 @@ export default {
         myMessage(state, payload) {
             state.book = false;
             state.follow = false;
+            state.comment = false;
             state.fans = false;
             state.draft = false;
             state.post = false;

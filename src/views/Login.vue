@@ -82,12 +82,12 @@ import {mapState} from 'vuex'
                 this.$store.commit('correct',{name:this.input_user, pwd:this.input_pwd})
             },
             isExist(){
-                if (this.input_user == ""){
-                    this.$message.warning("请输入注册用户名")
+                if (this.input_user.replace(/\s/g, '') == ''){
+                    this.$message.warning("注册用户名不能为空")
                     return
                 }
-                if (this.input_pwd == ""){
-                    this.$message.warning("请输入注册密码")
+                if (this.input_pwd.replace(/\s/g, '') == "" || this.input_pwd.length < 5){
+                    this.$message.warning("注册密码不能为空且至少4位")
                     return
                 }
                 this.$store.commit('isExist',{name:this.input_user, pwd:this.input_pwd})//利用对象传多个参数

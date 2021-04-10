@@ -65,13 +65,13 @@ import axios from 'axios'
             }
         },
         mounted(){
-            axios.get('http://localhost:8090/randArticle').then(res => {
+            axios.get(this.api + 'randArticle').then(res => {
                 this.article = res.data.randArticle
             })
         },
         data() {
             return {
-                url: 'http://localhost:8090/article/getcover?cover=',
+                url: this.api + 'article/getcover?cover=',
                 article: {
                     cover: '',
                 },

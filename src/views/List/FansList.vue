@@ -8,20 +8,23 @@
             <el-card v-for="(fan, index) in fanslist" :key="index" shadow="nerver" style="margin-bottom:10px">
                 <el-row type="flex" align="middle">
                     <el-col :span="3">
-                        <el-avatar :size="60" style="" :src="headUrl + fan.avatar"></el-avatar>
+                        <el-avatar :size="60" style="" :src="headUrl + fan.User.avatar"></el-avatar>
                     </el-col>
                     <el-col :span="4">
-                        <el-button type="text" class="fans" @click="visit(fan.user_name)">
-                            {{fan.user_name}}
+                        <el-button type="text" class="fans" @click="visit(fan.User.user_name)">
+                            {{fan.User.user_name}}
                         </el-button>
                         <div class="content" style="font-size:14px">
-                            {{fan.sign}}
+                            {{fan.User.sign}}
                         </div>
                     </el-col>
                     <el-col :span="14"></el-col>
                     <el-col :span="4">
-                        <el-button round>
+                        <el-button round @click="subscribe(fan,index)" v-if="!fan.IsFollowed">
                             关注
+                        </el-button>
+                        <el-button round type="primary" @click="unsubscribe(fan,index)" v-if="fan.IsFollowed">
+                            已关注
                         </el-button>
                     </el-col>
                 </el-row>
@@ -40,11 +43,12 @@ import {mapState} from 'vuex'
         computed:mapState({
             token: state => state.users.token,
             visitUser: state => state.users.visitUser,
+            fanslist: state=>state.users.fanslist,
         }),
         data(){
             return{
-                headUrl: 'http://localhost:8090/user/getavatar?username=',
-                fanslist: [],
+                headUrl: this.api + 'user/getavatar?username=',
+                // fanslist: [],
                 currrent: '',
                 visitmode: false,
             }
@@ -64,17 +68,24 @@ import {mapState} from 'vuex'
                 this.visitmode = true
             }
             else{
-                this.currrent = this.token
+                this.current = this.token
                 this.visitmode = false
             }
-            axios.get("http://localhost:8090/user/getfans",{
+            // this.updateCurrent(this.currrent)
+            axios.get(this.api + "user/getfollow",{
                 params:{
-                    username: this.currrent.user_name
+                    uid: this.current.uid,
+                    visit_uid: this.token.uid,
+                    mode: 'fans'
                 }
             }).then(res => {
-                this.fanslist = res.data.fanslist
-                if (this.fanslist != null)
-                    this.fanslist.reverse()
+                if(res.data.fanslist != null){
+                    this.$store.commit('setFansCnt',res.data.fanslist.length)
+                    this.$store.commit('setFanslist',res.data.fanslist)
+                }else{
+                    this.$store.commit('setFansCnt', 0)
+                    this.$store.commit('setFanslist',[])
+                }
             })
         },
         methods:{
@@ -83,12 +94,20 @@ import {mapState} from 'vuex'
             },
             updateCurrent(val) {
                 this.current = val
-                axios.get("http://localhost:8090/user/getmypost",{
+                axios.get(this.api + "user/getfollow",{
                     params:{
-                        uid: this.current.uid
+                        uid: this.current.uid,
+                        visit_uid: this.token.uid,
+                        mode: 'fans'
                     }
-                }).then(res =>{
-                    this.mypost = res.data.postlist
+                }).then(res => {
+                    if(res.data.fanslist != null){
+                        this.$store.commit('setFansCnt',res.data.fanslist.length)
+                        this.$store.commit('setFanslist',res.data.fanslist)
+                    }else{
+                        this.$store.commit('setFansCnt', 0)
+                        this.$store.commit('setFanslist',[])
+                    }
                 })
             }
         }

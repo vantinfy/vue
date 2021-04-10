@@ -1,12 +1,19 @@
 import router from '../router/index'
 import axios from 'axios'
 import { Message } from 'element-ui'
+import Vue from 'vue'
 
 export default {
     state: {
         token: '',
         visitUser: '',
         uid: '',
+        follow_fans_cnt: {
+            follow_cnt: 0,
+            fans_cnt: 0,
+        },
+        followlist: [],
+        fanslist: [],
         usr: [{
             // 管理员
             name: "admin",
@@ -26,14 +33,50 @@ export default {
     getters: {},
     mutations: {
         // 同步方法
-        correct(state, payload) {
+        setFollowCnt(state, payload) {
+            state.follow_fans_cnt.follow_cnt = payload
+        },
+        setFansCnt(state, payload) {
+            state.follow_fans_cnt.fans_cnt = payload
+        },
+        setFollowlist(state, payload) {
+            state.followlist = payload
+        },
+        setFanslist(state, payload) {
+            state.fanslist = payload
+        },
+        subscribe(state, payload) { // 关注
+            axios.get(Vue.prototype.api + 'user/subscribe', {
+                params: {
+                    follow_uid: payload.token.uid,
+                    follow_name: payload.token.user_name,
+                    be_follow_uid: payload.user.User.uid,
+                    be_follow_name: payload.user.User.user_name
+                }
+            }).then(res => {
+                if (!res.data.successFollow)
+                    Message({
+                        message: (res.data.msg),
+                        type: 'warning'
+                    }, true)
+            })
+        },
+        unsubscribe(state, payload) { // 取消关注
+            axios.get(Vue.prototype.api + 'user/unsubscribe', {
+                params: {
+                    uid: payload.token.uid,
+                    target_uid: payload.user.User.uid,
+                }
+            })
+        },
+        correct(state, payload) { // 登录
             let params = new FormData();
             params.append("name", payload.name)
             params.append("password", payload.pwd)
             let config = {
                 headers: { 'Content-Type': 'multipart/form-data' }
-            };
-            axios.post('http://localhost:8090/user/login', params, config)
+            }
+            axios.post(Vue.prototype.api + 'user/login', params, config)
                 .then(function(res) {
                     // console.log(res)
                     if (res.data.isLogin) {
@@ -67,14 +110,14 @@ export default {
                 // }
                 // alert("账号或密码错误")
         },
-        isExist: (state, payload) => {
+        isExist: (state, payload) => { // 注册——判断用户名是否存在
             let params = new FormData();
             params.append("name", payload.name)
             params.append("password", payload.pwd)
             let config = {
                 headers: { 'Content-Type': 'multipart/form-data' }
             };
-            axios.post('http://localhost:8090/user/register', params, config)
+            axios.post(Vue.prototype.api + 'user/register', params, config)
                 .then(function(res) {
                     if (res.data.successRegister) {
                         Message({
@@ -109,17 +152,17 @@ export default {
             router.push('/') //回到首页
                 // return state.token
         },
-        updateToken(state, payload) {
+        updateToken(state, payload) { // 刷新用户信息token
             state.token = payload
         },
-        updateVisitUser(state, payload) {
+        updateVisitUser(state, payload) { // 刷新要访问对象的信息
             state.visitUser = payload
         },
     },
     actions: {
         // 异步方法
         visit(context, payload) {
-            axios.get("http://localhost:8090/user/visitspace", {
+            axios.get(Vue.prototype.api + "user/visitspace", {
                 params: {
                     username: payload
                 }

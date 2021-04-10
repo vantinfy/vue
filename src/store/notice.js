@@ -43,15 +43,23 @@ export default {
                 state.subscribeNoticeCnt -= payload.change
         },
         setZero(state, payload) {
-            if (payload == "system_notice")
+            if (payload == "system_notice") {
                 state.systemNoticeCnt = 0
-            else if (payload == "comment_notice")
+                state.systemNotice = []
+            } else if (payload == "comment_notice") {
                 state.commentNoticeCnt = 0
-            else if (payload == "subscribe_notice")
+                state.commentNotice = []
+            } else if (payload == "subscribe_notice") {
                 state.subscribeNoticeCnt = 0
-            else if (payload == "zan_book_notice")
+                state.subscribeNotice = []
+            } else if (payload == "zan_book_notice") {
                 state.zanBookNoticeCnt = 0
-            else if (payload == "all") {
+                state.zanBookNotice = []
+            } else if (payload == "all") {
+                state.systemNotice = []
+                state.commentNotice = []
+                state.subscribeNotice = []
+                state.zanBookNotice = []
                 state.systemNoticeCnt = 0
                 state.commentNoticeCnt = 0
                 state.subscribeNoticeCnt = 0

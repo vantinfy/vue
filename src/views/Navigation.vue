@@ -107,10 +107,10 @@ import axios from 'axios'
             systemNotice: state => state.notice.systemNotice,
             commentNotice: state => state.notice.commentNotice,
             zanBookNoticeCnt:state=>state.notice.zanBookNoticeCnt,
-            subscribeNotice: state => state.subscribeNotice,
+            subscribeNotice: state => state.notice.subscribeNotice,
         }),
         mounted(){
-            // axios.get('http://localhost:8090/user/getlogin',{
+            // axios.get(this.api + 'user/getlogin',{
             //     params:{
             //             token: this.$store.token,
             //         }
@@ -129,8 +129,8 @@ import axios from 'axios'
             else{
                 this.isLogin = true
                 if (this.token.avatar != null){
-                    this.headUrl = 'http://localhost:8090/user/getavatar?uid=' + this.token.uid
-                    axios.get('http://localhost:8090/notice/getallnotice',{
+                    this.headUrl = this.api + 'user/getavatar?uid=' + this.token.uid
+                    axios.get(this.api + 'notice/getallnotice',{
                         params:{
                             uid: this.token.uid,
                             level: this.token.level,
@@ -138,28 +138,28 @@ import axios from 'axios'
                     }).then(res => {
                         this.$store.commit('setZero',"all")
                         if (res.data.system_notice != null){
-                            this.$store.commit('setSystemNotice', res.data.system_notice.reverse())
+                            this.$store.commit('setSystemNotice', res.data.system_notice)
                             this.systemNotice.forEach(val => {
                                 if(val.is_read == 0)
                                     this.$store.commit('add', "sys")
                             })
                         }
                         if (res.data.subscribe_notice != null){
-                            this.$store.commit('setSubscribeNotice', res.data.subscribe_notice.reverse())
+                            this.$store.commit('setSubscribeNotice', res.data.subscribe_notice)
                             this.subscribeNotice.forEach(val => {
-                                if(val.is_read == 0)
+                                if(val.SubscribeNotice.is_read == 0)
                                     this.$store.commit('add', "subs")
                             })
                         }
                         if (res.data.comment_notice != null){
-                            this.$store.commit('setCommentNotice', res.data.comment_notice.reverse())
+                            this.$store.commit('setCommentNotice', res.data.comment_notice)
                             this.commentNotice.forEach(val => {
                                 if(val.is_read == 0)
                                     this.$store.commit('add', "com")
                             })
                         }
                         if (res.data.zan_book_notice != null){
-                            this.$store.commit('setZanBookNotice', res.data.zan_book_notice.reverse())
+                            this.$store.commit('setZanBookNotice', res.data.zan_book_notice)
                             this.zanBookNotice.forEach(val => {
                                 if(val.is_read == 0)
                                     this.$store.commit('add', "zbk")
@@ -308,7 +308,7 @@ import axios from 'axios'
     /* height:800px; */
     line-height: 60px;
     /* display: block; */
-    z-index: 3;
+    z-index: 2003;
     position: fixed;
     left:0;
     top:0;

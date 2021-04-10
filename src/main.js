@@ -9,6 +9,7 @@ import './assets/css/index.css' // 全局css样式表
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 Vue.use(ElementUI)
+Vue.prototype.$notify // 全局使用element-ui的notify组件
 
 // import axios from 'axios' // 可在组件中这样引入，这样的话其直接使用axios.get等方法就不需要用this.$前缀
 import axios from './api/config'
@@ -31,15 +32,26 @@ Vue.use(VueQuillEditor /*, { default global options } */ );
 import VEmojiPicker from "v-emoji-picker";
 Vue.use(VEmojiPicker);
 
+// 绑定自定义全局变量——其实就是后台接口地址，用了typeof打印类型是字符串
+import api from './components/Global.vue'
+Vue.prototype.api = api.apiUrl;
+// import store from './store/index'
+// Vue.prototype.store = store
+
 Vue.config.productionTip = false
 
-// router.beforeEach((to, from, next) => {
-//     // console.log(to.matched[0], to.matched[0].components.default.methods)
-//     setTimeout(() => {
-//             // console.log("wake")
-//             next()
-//         }, Math.random() * 900 + 100) // 随机延迟时间：0.1-1秒
-// })
+router.beforeEach((to, from, next) => {
+    // console.log(to.matched[0], to.matched[0].components.default.methods)
+    // setTimeout(() => {
+    //         // console.log("wake")
+    //         next()
+    //     }, Math.random() * 900 + 100) // 随机延迟时间：0.1-1秒
+    /* 路由发生变化修改页面title */
+    if (to.meta.title) {
+        document.title = to.meta.title
+    }
+    next()
+})
 
 new Vue({
     router,

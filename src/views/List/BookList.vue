@@ -15,9 +15,9 @@
                             {{book.UserName}}
                         </el-button>
                     </el-col>
-                    <el-col :span="14"></el-col>
-                    <el-col :span="4">
-                        <span style="font-size:12px;color:grey;">{{book.Article.create_time.split(" ")[0]}}</span>
+                    <el-col :span="12"></el-col>
+                    <el-col :span="6">
+                        <span style="font-size:12px;color:grey;">收藏于{{book.BookTime.split(" ")[0]}}</span>
                     </el-col>
                 </el-row>
                 <div>
@@ -40,23 +40,23 @@
                     </el-col>
                     <el-col :span="3">
                         <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-zan" @click="cancelZan(book,index)" v-if="book.IsZan">
-                            {{book.ZanList.length}}
+                            {{book.ZanCount}}
                         </el-button>
                         <el-button type="text" style="width:100%;font-size:18px;" icon="el-icon-zan0" @click="zan(book,index)" v-if="!book.IsZan">
-                            {{book.ZanList.length}}
+                            {{book.ZanCount}}
                         </el-button>
                     </el-col>
                     <el-col :span="3">
                         <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-on" @click="cancelBook(book,index)" v-if="book.IsBook">
-                            {{book.BookList.length}}
+                            {{book.BookCount}}
                         </el-button>
-                        <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-off" @click="book(book,index)" v-if="!book.IsBook">
-                            {{book.BookList.length}}
+                        <el-button type="text" style="width:100%;font-size:20px" icon="el-icon-star-off" @click="Book(book,index)" v-if="!book.IsBook">
+                            {{book.BookCount}}
                         </el-button>
                     </el-col>
                     <el-col :span="3">
-                        <el-button type="text" style="width:100%;font-size:18px" icon="el-icon-chat-dot-round">
-                            {{book.CommentList.length}}
+                        <el-button type="text" style="width:100%;font-size:18px" icon="el-icon-chat-dot-round"  @click="tDetail(book.Article.tid)">
+                            {{book.CommentCount}}
                         </el-button>
                     </el-col>
                 </el-row>
@@ -96,31 +96,32 @@ import {mapState} from 'vuex'
                 this.visitmode = false
                 this.current = this.token
             }
-            axios.get("http://localhost:8090/user/getmybook",{
-                params:{
-                    uid: this.current.uid,
-                    visit_uid:this.current.uid,
-                }
-            }).then(res =>{
-                // console.log(res.data)
-                this.mybook = res.data.booklist
-                if(this.mybook != null)
-                    this.mybook.forEach(val => {
-                        if (val.ZanList == null)
-                            val.ZanList = []
-                        if (val.BookList == null)
-                            val.BookList = []
-                        if (val.CommentList == null)
-                            val.CommentList = []
-                    })
-            })
+            this.updateCurrent(this.current)
+            // axios.get(this.api + "user/getmybook",{
+            //     params:{
+            //         uid: this.current.uid,
+            //         visit_uid:this.token.uid,
+            //     }
+            // }).then(res =>{
+            //     // console.log(res.data)
+            //     this.mybook = res.data.booklist
+            //     // if(this.mybook != null)
+            //     //     this.mybook.forEach(val => {
+            //     //         if (val.ZanList == null)
+            //     //             val.ZanList = []
+            //     //         if (val.BookList == null)
+            //     //             val.BookList = []
+            //     //         if (val.CommentList == null)
+            //     //             val.CommentList = []
+            //     //     })
+            // })
         },
         data() {
             return {
                 mybook: [],
                 owner: [],
-                headUrl: 'http://localhost:8090/user/getavatar?username=',
-                url: 'http://localhost:8090/article/getcover?cover=',
+                headUrl: this.api + 'user/getavatar?username=',
+                url: this.api + 'article/getcover?cover=',
                 // srcList: ['https://fuss10.elemecdn.com/e/5d/4a731a90594a4af544c0c25941171jpeg.jpeg'],
                 visitmode: false,
                 current: '',
@@ -129,7 +130,7 @@ import {mapState} from 'vuex'
         },
         methods:{
             visit(val){
-                axios.get("http://localhost:8090/user/visitspace", {
+                axios.get(this.api + "user/visitspace", {
                     params:{
                         username: val
                     }
@@ -140,12 +141,13 @@ import {mapState} from 'vuex'
             },
             updateCurrent(val) {
                 this.current = val
-                axios.get("http://localhost:8090/user/getmypost",{
+                axios.get(this.api + "user/getmybook",{
                     params:{
-                        uid: this.current.uid
+                        uid: this.current.uid,
+                        visit_uid: this.token.uid,
                     }
                 }).then(res =>{
-                    this.mypost = res.data.postlist
+                    this.mybook = res.data.booklist
                 })
             },
             tDetail(val){
@@ -165,7 +167,7 @@ import {mapState} from 'vuex'
                 this.mybook[index].ZanList.pop()
                 this.mybook[index].IsZan = false
             },
-            book(article,index){
+            Book(article,index){
                 if(this.token == ''){
                     this.$message.warning("需要登录才能操作哦")
                     return

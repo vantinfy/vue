@@ -64,7 +64,7 @@
         <!-- </el-scrollbar> -->
         </el-menu>
         
-        <el-row type="flex" justify="space-around">
+        <el-row type="flex" justify="space-around" v-loading.fullscreen.lock="loading" element-loading-text="拼命加载中">
             <el-col :span="3" >
                 <!-- <h5>默认颜色</h5> -->
             </el-col>
@@ -275,8 +275,9 @@ import {mapState} from 'vuex'
             }
             this.handleSelect(this.menuActive)
             // console.log(new Date("2077-2-2 12:12:00".replace(/-/g, '/')).getTime())
-            axios.get('http://localhost:8090/admin/getAllUser',{
+            axios.get(this.api + 'admin/getAllUser',{
             }).then(res => {
+                this.loading = false
                 this.users = res.data.allusers
                 for (let i = 0; i < this.users.length; i++){
                     if(this.users[i].uid == 100001){
@@ -299,7 +300,7 @@ import {mapState} from 'vuex'
                     this.users[i].post = 0 // 用户发帖统计
                 }
             })
-            axios.get('http://localhost:8090/admin/getAllArticle',{
+            axios.get(this.api + 'admin/getAllArticle',{
             }).then(res => {
                 this.articles = res.data.allarticles
                 this.articles.forEach(val => {
@@ -504,6 +505,7 @@ import {mapState} from 'vuex'
                        },
                     ]
                },
+               loading: true
             }
         },
         methods:{
@@ -582,8 +584,8 @@ import {mapState} from 'vuex'
             articleSelectionChange(val){
                 this.articleSelect = {tids:[], covers:[]}
                 val.forEach(key => {
-                    this.articleSelect.tids.push(key.tid)
-                    this.articleSelect.covers.push(key.cover)
+                    this.articleSelect.tids.push(key.Tid)
+                    this.articleSelect.covers.push(key.Cover)
                 })
                 // this.articleSelect = val
             },
@@ -606,12 +608,23 @@ import {mapState} from 'vuex'
                     let config = {
                         headers:{'Content-Type':'multipart/form-data'}
                     }
-                    axios.post('http://localhost:8090/admin/forbid',params,config).then(res => {
+                    axios.post(this.api + 'admin/forbid',params,config).then(res => {
                         if (res.data.isForbidden){
-                            this.$message.success("禁言成功")
+                            this.$notify({
+                                title: res.data.msg,
+                                // message: '这是一条成功的提示消息',
+                                type: 'success',
+                                offset: 100
+                            })
                             this.reload()
                         }else{
-                            this.$message.error(res.data.msg)
+                            // this.$message.error(res.data.msg)
+                            this.$notify({
+                                title: res.data.msg,
+                                // message: '这是一条成功的提示消息',
+                                type: 'error',
+                                offset: 100
+                            })
                         }
                     })
                     this.silentView = false
@@ -646,12 +659,21 @@ import {mapState} from 'vuex'
                 let config = {
                     headers:{'Content-Type':'multipart/form-data'}
                 }
-                axios.post('http://localhost:8090/admin/relieve',params,config).then(res => {
+                axios.post(this.api + 'admin/relieve',params,config).then(res => {
                     if(res.data.isRelieve){
-                        this.$message.success("解除禁言成功")
+                        this.$notify({
+                                title: res.data.msg,
+                                type: 'success',
+                                offset: 100
+                            })
                         this.reload()
                     }else{
-                        this.$message.error(res.data.msg)
+                        this.$notify({
+                                title: res.data.msg,
+                                // message: '这是一条成功的提示消息',
+                                type: 'error',
+                                offset: 100
+                            })
                     }
                 })
                 // this.reload()
@@ -670,12 +692,20 @@ import {mapState} from 'vuex'
                 let config = {
                     headers:{'Content-Type':'multipart/form-data'}
                 };
-                axios.post('http://localhost:8090/admin/deleteArticles',params,config).then(res => {
+                axios.post(this.api + 'admin/deleteArticles',params,config).then(res => {
                     if(res.data.isDelete){
-                        this.$message.success("删除成功")
+                        this.$notify({
+                            title: res.data.msg,
+                            type: 'success',
+                            offset: 100
+                        })
                         this.reload()
                     }else{
-                        this.$message.error(res.data.msg)
+                        this.$notify({
+                            title: res.data.msg,
+                            type: 'error',
+                            offset: 100
+                        })
                     }
                 })
             },

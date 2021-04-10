@@ -18,7 +18,7 @@
                     </h5>
                     
                 </div>
-                <el-carousel height="400px" type="card" :interval="2000" style="margin:10px 4px;background-image:url('assets/wechat.png')">
+                <el-carousel height="400px" type="card" :interval="2000" style="margin:10px 4px;background-image:url('assets/wechat.png')" v-loading="loading" element-loading-text="拼命加载中">
                     <el-carousel-item v-for="(article, index) in newest" :key="index" style="text-align:center">
                         <el-button type="text" style="padding:0;height:100%" @click="tDetail(article.Article.tid)">
                             <el-image
@@ -287,7 +287,8 @@ import {mapState} from 'vuex'
             })
         },
         mounted(){
-            this.$axios.get('http://localhost:8090/article/getTopArticle').then(res => {
+            this.$axios.get(this.api + 'article/getTopArticle').then(res => {
+                this.loading = false
                 this.totalTop = res.data.totalTop
                 this.new7 = res.data.new7
                 this.new31 = res.data.new31
@@ -298,7 +299,7 @@ import {mapState} from 'vuex'
                 this.new31 = this.new31.slice(0,5) // 月榜
                 this.newest = this.new7 // 设置轮播图展示的具体是周榜还是月榜
             })
-            this.$axios.get('http://localhost:8090/article/getAllArticle').then(res => { // 获取每个话题下的帖子
+            this.$axios.get(this.api + 'article/getAllArticle').then(res => { // 获取每个话题下的帖子
                 this.animationList = res.data.animationList // 后台已经完成排序和剪切，只发送最新的4篇，下同
                 this.comicList = res.data.comicList
                 this.gameList = res.data.gameList
@@ -306,8 +307,8 @@ import {mapState} from 'vuex'
         },
         data(){
             return {
-                headUrl: 'http://localhost:8090/user/getavatar?username=',
-                url: 'http://localhost:8090/article/getcover?cover=',
+                headUrl: this.api + 'user/getavatar?username=',
+                url: this.api + 'article/getcover?cover=',
                 totalTop:[],
                 new7:[],
                 new31:[],
@@ -318,6 +319,7 @@ import {mapState} from 'vuex'
                 animationList: [],
                 comicList: [],
                 gameList: [],
+                loading: true,
             }
         },
         methods:{
