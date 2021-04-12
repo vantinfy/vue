@@ -19,7 +19,7 @@
                                         <span v-if="visitUser.sex=='女'" style="margin-left:6px;color:#FF1493;font-weight:bolder">♀</span>
                                         <span style="margin-left:20px;font-weight:thin;font-size:14px">uid:{{visitUser.uid}}</span>
                                     </div>
-                                    <span style="margin-bottom:10px;color:#be002f;font-weight:thin;font-size:14px" v-show="new Date(visitUser.state.replace(/-/g, '/')).getTime() > new Date().getTime()">
+                                    <span style="margin-bottom:10px;color:#be002f;font-weight:thin;font-size:14px" v-show="silence">
                                         <!-- 字体颜色：殷红#be002f -->
                                         <i class="el-icon-loading"></i> 该账号封禁中，恢复时间：{{visitUser.state}}
                                     </span>
@@ -155,47 +155,31 @@ import axios from 'axios'
                 followCnt: 0,
                 fansCnt: 0,
                 isfollowed: false,
+                silence: false
                 // dialogFormVisible: false,
                 // myself: false,
             }
         },
         mounted(){
-            axios.get(this.api + 'user/getavatar',{
-                params:{
-                    uid: this.$router.currentRoute.path.split('/')[2]
-                }
-            }).then(res => {
-                if (res.data.notFound == true){
-                    this.$router.push('/notFound')
-                    return
-                }
-            })
-            if(this.token.uid == this.visitUser.uid)
-                this.$store.commit('myPost', {visit: false, token: this.token})
             axios.get(this.api + 'user/refreshuserinfo',{
                 params:{
-                    uid: this.visitUser.uid,
+                    uid: this.$router.currentRoute.path.split('/')[2],
                     visit_uid: this.token.uid,
                 }
             }).then(res => {
-                this.isfollowed = res.data.isfollowed
-                this.$store.commit('updateVisitUser',res.data.refreshUserInfo)
+                if(res.data.exist){ // 如果用户存在
+                    this.isfollowed = res.data.isfollowed // 是否已经关注
+                    this.$store.commit('updateVisitUser',res.data.refreshUserInfo) // 刷新visitUser
+                    if(this.token.uid == this.visitUser.uid){ // 如果token跟visitUser是同一个用户，跳转到自己的个人空间，游客token为''
+                        this.$store.commit('myPost', {visit: false, token: this.token})
+                        return
+                    }
+                    if(new Date(this.visitUser.state.replace(/-/g, '/')).getTime() > new Date().getTime()) // 判断是否已禁言
+                        this.silence = true
+                }else{
+                    this.$router.push('/notFound')
+                }
             })
-            // if (this.token != '')
-            //     for (let i = 0; i < this.token.follow.split("-").length; i++){
-            //         if (this.token.follow.split("-")[i] == this.visitUser.uid){
-            //             this.hasNotSubsribe = true
-            //             break
-            //         }
-            //     }
-            // this.siteReload()
-            // if (this.visitUser.avatar == null){
-            //     this.headUrl = ''
-            // }
-            // if(this.visitUser.follow != "")
-            //     this.followCnt = this.visitUser.follow.split("-").length
-            // if(this.visitUser.fans != "")
-            //     this.fansCnt = this.visitUser.fans.split("-").length
         },
         methods:{
             subscribe(){

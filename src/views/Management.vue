@@ -24,7 +24,7 @@
                 <el-menu-item index="2-1">用户管理</el-menu-item>
                 <el-menu-item index="2-2">帖子管理</el-menu-item>
                 <!-- </el-menu-item-group> -->
-                <el-menu-item index="2-3">话题管理</el-menu-item>
+                <!-- <el-menu-item index="2-3">话题管理</el-menu-item> -->
                 <!-- <el-menu-item index="3-4">消息管理</el-menu-item> -->
             </el-submenu>
             <el-submenu index="3">
@@ -188,11 +188,11 @@
                         <!-- <el-button @click="toggleSelection()" type="warning" style="float:right;margin-right:30px">批量禁言</el-button> -->
                     </el-tab-pane>
                     
-                    <el-tab-pane name="topicManage">
+                    <!-- <el-tab-pane name="topicManage">
                         <span slot="label"><i class="el-icon-connection"></i> 评论管理</span>
                         话题管理内容--
                         新增管理员
-                    </el-tab-pane>
+                    </el-tab-pane> -->
                     <!-- <el-tab-pane label="定时任务补偿">定时任务补偿</el-tab-pane> -->
                 </el-tabs>
 
@@ -277,6 +277,7 @@ import {mapState} from 'vuex'
             // console.log(new Date("2077-2-2 12:12:00".replace(/-/g, '/')).getTime())
             axios.get(this.api + 'admin/getAllUser',{
             }).then(res => {
+                console.log(res.data.allusers)
                 this.loading = false
                 this.users = res.data.allusers
                 for (let i = 0; i < this.users.length; i++){
@@ -304,29 +305,29 @@ import {mapState} from 'vuex'
             }).then(res => {
                 this.articles = res.data.allarticles
                 this.articles.forEach(val => {
-                    val.Content = val.Content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')// 富文本标签去除
+                    val.Content = val.Content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'').replace(/&nbsp;/g,'')// 富文本标签去除
                 })
-                // if (this.articles != '')
-                //     this.articles.forEach((val, index) => {
-                //         val.content = val.content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')// 富文本标签去除
-                //         if (this.articles[index].book != '')
-                //             this.articles[index].bookCnt = this.articles[index].book.split('-').length
-                //         else
-                //             this.articles[index].bookCnt = 0
-                //         if (this.articles[index].zan != '')
-                //             this.articles[index].zanCnt = this.articles[index].zan.split('-').length
-                //         else
-                //             this.articles[index].zanCnt = 0
-                //         if (this.articles[index].comment != '')
-                //             this.articles[index].commentCnt = this.articles[index].comment.split('-').length
-                //         else
-                //             this.articles[index].commentCnt = 0
-                //         this.articles[index].user_name = res.data.ownerlist[index].UserName
-                //         this.users.forEach((_, i) => {
-                //             if (this.users[i].uid == this.articles[index].uid)
-                //                 this.users[i].post ++
-                //         })
-                //     })
+                if (this.articles != null)
+                    this.articles.forEach((val, index) => {
+                        val.Content = val.Content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')// 富文本标签去除
+                        // if (this.articles[index].book != '')
+                        //     this.articles[index].bookCnt = this.articles[index].book.split('-').length
+                        // else
+                        //     this.articles[index].bookCnt = 0
+                        // if (this.articles[index].zan != '')
+                        //     this.articles[index].zanCnt = this.articles[index].zan.split('-').length
+                        // else
+                        //     this.articles[index].zanCnt = 0
+                        // if (this.articles[index].comment != '')
+                        //     this.articles[index].commentCnt = this.articles[index].comment.split('-').length
+                        // else
+                        //     this.articles[index].commentCnt = 0
+                        // this.articles[index].user_name = res.data.ownerlist[index].UserName
+                        this.users.forEach((_, i) => {
+                            if (this.users[i].uid == this.articles[index].Uid)
+                                this.users[i].post ++
+                        })
+                    })
                 this.articles.forEach((key, index) => {
                     this.articleOptions.xAxis.data.push('Tid:' + key.Tid)
                     this.articleOptions.series[0].data.push(key.ZanCount)

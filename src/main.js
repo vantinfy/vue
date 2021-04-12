@@ -15,28 +15,9 @@ Vue.prototype.$notify // 全局使用element-ui的notify组件
 import axios from './api/config'
 Vue.prototype.$axios = axios //全局注册，使用方法为:this.$axios
 
-// 富文本编辑器
-// import { Quill, VueQuillEditor } from 'vue-quill-editor'
-import VueQuillEditor from 'vue-quill-editor'
-// import quillEmoji from 'quill-emoji'
-// import 'quill-emoji/dist/quill-emoji.css' // quill的emoji表情
-// Quill.register('modules/quillEmoji', quillEmoji)
-import 'quill/dist/quill.core.css' // 引入富文本css
-import 'quill/dist/quill.snow.css'
-import 'quill/dist/quill.bubble.css'
-
-// 富文本编辑器添加实例
-Vue.use(VueQuillEditor /*, { default global options } */ );
-
-// v-emoji表情
-import VEmojiPicker from "v-emoji-picker";
-Vue.use(VEmojiPicker);
-
 // 绑定自定义全局变量——其实就是后台接口地址，用了typeof打印类型是字符串
 import api from './components/Global.vue'
 Vue.prototype.api = api.apiUrl;
-// import store from './store/index'
-// Vue.prototype.store = store
 
 Vue.config.productionTip = false
 

@@ -15,7 +15,7 @@
                         <el-col :span="6">
                             <div class="foot-title">about</div>
                             <el-button type="text" class="btn">关于本站</el-button>
-                            <el-button type="text" class="btn">加入本站</el-button>
+                            <el-button type="text" class="btn" @click="joinView = true">加入本站</el-button>
                         </el-col>
                         <el-col :span="6">
                             <div class="foot-title">联系</div>
@@ -42,14 +42,29 @@
                     type="textarea"
                     placeholder="反馈只有站长会收到哦"
                     v-model="feedbackContent"
-                    maxlength="300"
+                    maxlength="600"
                     show-word-limit
                     :autosize="{ minRows: 6, maxRows: 6}"
                     >
                 </el-input>
                 <div slot="footer">
                     <el-button @click="feedbackView = false">取 消</el-button>
-                    <el-button type="primary" @click="feedback">提 交</el-button>
+                    <el-button type="primary" @click="feedback('feedback')">提 交</el-button>
+                </div>
+            </el-dialog>
+            <el-dialog  title="加入本站申请" :visible.sync="joinView">
+                <el-input
+                    type="textarea"
+                    placeholder="只有站长会收到哦"
+                    v-model="joinContent"
+                    maxlength="600"
+                    show-word-limit
+                    :autosize="{ minRows: 6, maxRows: 6}"
+                    >
+                </el-input>
+                <div slot="footer">
+                    <el-button @click="joinView = false">取 消</el-button>
+                    <el-button type="primary" @click="feedback('join')">提 交</el-button>
                 </div>
             </el-dialog>
             <span style="color:grey;font-size:14px">
@@ -68,6 +83,8 @@ import {mapState} from 'vuex'
             return {
                 feedbackView: false,
                 feedbackContent: '',
+                joinView: false,
+                joinContent: '',
                 config: {
                     headers:{'Content-Type':'multipart/form-data'}
                 }
@@ -95,7 +112,7 @@ import {mapState} from 'vuex'
                     this.reload()
                 }
             },
-            feedback(){
+            feedback(type){ // type:feedback||join
                 if(this.token == ''){
                     this.$message.warning("请先登录再操作")
                     return
@@ -105,18 +122,26 @@ import {mapState} from 'vuex'
                     return
                 }
                 let params = new FormData()
-                params.append("feedbackContent", this.feedbackContent)
-                params.append("type", "feedback")
+                if(type == "feedback"){
+                    params.append("feedbackContent", this.feedbackContent)
+                    params.append("type", "feedback")
+                }else{
+                    params.append("joinReason", this.joinReason)
+                    params.append("type", "join")
+                }
                 params.append("user_name", this.token.user_name)
                 params.append("uid", this.token.uid)
                 axios.post(this.api + 'notice/feedback', params, this.config).then(res => {
-                    if(res.data.isFeedback)
+                    if(res.data.isFeedback){
                         this.$notify({
                             title: res.data.msg,
                             message: '管理员会尽快核实',
                             type: 'success',
                             offset: 100
-                        });
+                        })
+                        this.feedbackView = false
+                        this.joinView = false
+                    }
                     else
                         this.$notify({
                             title: res.data.msg,
@@ -124,9 +149,8 @@ import {mapState} from 'vuex'
                             type: 'error',
                             offset: 100
                         });
-                    this.feedbackView = false
                 })
-            }
+            },
             // getAnswer(){
             //     var vm = this;
             //     this.$axios.get('https://yesno.wtf/api')

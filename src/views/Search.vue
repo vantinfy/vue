@@ -222,12 +222,12 @@ import {mapState} from 'vuex'
                     return
                 }
                 this.$store.commit('zan',{article:article,token:this.token})
-                this.articleInfo[index].ZanList.push("...")
+                this.articleInfo[index].ZanCount++
                 this.articleInfo[index].IsZan = true
             },
             cancelZan(article,index){
                 this.$store.commit('cancelZan',{article:article,token:this.token})
-                this.articleInfo[index].ZanList.pop()
+                this.articleInfo[index].ZanCount--
                 this.articleInfo[index].IsZan = false
             },
             book(article,index){
@@ -236,12 +236,12 @@ import {mapState} from 'vuex'
                     return
                 }
                 this.$store.commit('book',{article:article,token:this.token})
-                this.articleInfo[index].BookList.push("...")
+                this.articleInfo[index].BookCount++
                 this.articleInfo[index].IsBook = true
             },
             cancelBook(article,index){
                 this.$store.commit('cancelBook',{article:article,token:this.token})
-                this.articleInfo[index].BookList.pop()
+                this.articleInfo[index].BookCount--
                 this.articleInfo[index].IsBook = false
             },
             subscribe(user,index){

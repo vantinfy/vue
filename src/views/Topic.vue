@@ -18,7 +18,7 @@
                             <div style="font-size:20px;font-weight:bolder;margin-bottom:10px">
                                 {{this.$router.currentRoute.path.split("/")[2]}}
                             </div>
-                            这里是动漫相关话题
+                            这里是{{this.$router.currentRoute.path.split("/")[2]}}相关话题
                         </el-col>
                         <el-col :span="3" style="">
                             <el-button type="primary" icon="el-icon-edit" @click="publish">发布帖子</el-button>
@@ -55,7 +55,7 @@
                         <div class="content" style="font-size: 14px; margin: 0 20px 6px 10px;" v-html="article.Article.content.replace(/<(\S*?)[^>]*>.*?|<.*? \/>/g,'').replace(/&&&img&&&/g,'')">
                         </div>
                         <!-- <div style="text-align:center;margin-top:10px;"> -->
-                            <el-button @click="tDetail(article.Article.tid)" type="text">
+                            <el-button @click="tDetail(article.Article.tid)" type="text" style="text-align:center;width:100%">
                                 <el-image
                                     fit="contain"
                                     style="height:100px;width:100%"
